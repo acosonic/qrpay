@@ -521,8 +521,9 @@
 
   /* Saved QR codes */
   /* Outer saved-codes card (rounded white container) + inner saved-item mini-cards.
-     details-body padding is 0 so the inner saved-item extends edge-to-edge with the
-     outer card (i.e. visual width matches the Unos podataka card below). */
+     Original padding 16px 18px gave too much inset; lowered to 12px 8px so the
+     inner saved-item card visibly fills more of the saved-card width while
+     keeping clear nesting (both boxes fully visible). */
   .saved-card { grid-column: 1 / -1; padding: 0; overflow: hidden; }
   .saved-card > details.fields { margin: 0; border: none; border-radius: 10px; background: transparent; }
   .saved-card > details.fields > summary {
@@ -536,7 +537,7 @@
   .saved-card > details.fields[open] > summary { color: var(--text); }
   .saved-card > details.fields > .details-body {
     background: var(--card);
-    padding: 0 0 14px 0;
+    padding: 12px 8px;
   }
   .muted-count {
     margin-left: 6px;
@@ -549,38 +550,20 @@
     letter-spacing: 0;
     text-transform: none;
   }
-  /* Saved-item: mini-card inside the outer saved-card. Bg gradient (accent-soft)
-     distinguishes it from neutral content cards. Extends edge-to-edge with the
-     saved-card on mobile; on wide screens becomes a grid for density. */
+  /* Saved-item: full mini-card with all four borders + rounded corners. */
   #saved-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 10px;
   }
   .saved-item {
     border: 1px solid var(--border);
-    border-radius: 0;
-    padding: 12px 18px;
+    border-radius: 8px;
+    padding: 12px;
     background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 64%, var(--card)), var(--card));
-    box-shadow: none;
-    border-left: none;
-    border-right: none;
     display: flex;
     flex-direction: column;
     gap: 6px;
-  }
-  @media (min-width: 720px) {
-    #saved-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 12px;
-      padding: 0 14px;
-    }
-    .saved-item {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-    }
   }
   .saved-item .title {
     font-weight: 600;
