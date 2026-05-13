@@ -4,6 +4,21 @@ Web aplikacija za generisanje **NBS IPS QR koda** (Narodna banka Srbije, instant
 
 > NBS IPS QR generator with offline PWA support, native share, and saved-codes wallet. Pure HTML/CSS/JS, no build step.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" valign="top" width="65%">
+      <strong>Desktop</strong><br>
+      <img src="screenshots/desktop.png" alt="Desktop view" width="100%">
+    </td>
+    <td align="center" valign="top" width="35%">
+      <strong>Mobile</strong><br>
+      <img src="screenshots/mobile.png" alt="Mobile view" width="100%">
+    </td>
+  </tr>
+</table>
+
 ## Funkcionalnost
 
 - **Pametan parser** — nalepi tekst tipa `160550010064176439 Marko Markovic, Knez Mihailova 5, 11000 Beograd` ili `205-0099887766554-25 Banca Intesa Petar Petrovic, 21000 Novi Sad` → automatski prepozna račun (sa ili bez crtica), banku, poštanski broj, grad
