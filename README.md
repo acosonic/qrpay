@@ -80,9 +80,9 @@ Service worker traži HTTPS ili localhost, tako da `file://` neće raditi za PWA
 
 ## Deploy
 
-App je static — radi na bilo kom HTTP serveru (Apache, Nginx, GitHub Pages, Netlify, Vercel). Putanje su relativne tako da radi i u podfolderu.
+App je static — radi na bilo kom HTTP serveru. Putanje su relativne tako da radi i u podfolderu.
 
-Trenutno se deploy-uje na `https://acosonic.com/qrcode/`.
+Live verzija: **https://acosonic.github.io/qrpay/** (GitHub Pages, deploy automatski iz `main` brancha).
 
 ## Bezbednost
 

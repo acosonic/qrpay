@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repo.
 
 ## What this is
 
-Static PWA for generating **NBS IPS QR codes** (Serbian National Bank instant-payment QR format). Single HTML file, vanilla JS, no build step, no backend. Deployed to `https://acosonic.com/qrcode/` (Apache) and `https://acosonic.github.io/qrpay/` (GitHub Pages).
+Static PWA for generating **NBS IPS QR codes** (Serbian National Bank instant-payment QR format). Single HTML file, vanilla JS, no build step, no backend. Deployed to `https://acosonic.github.io/qrpay/` via GitHub Pages — `main` branch is the live deploy target.
 
 **All paths are relative** (`./`, `manifest.json`, `service-worker.js`, etc.) so the app runs unchanged from any subdirectory. Don't add absolute paths like `/qrpay/...` — they'll break Pages or the local dev server.
 
@@ -16,7 +16,6 @@ UI is **Serbian** (`lang="sr"`). Keep it that way. Comments and CLAUDE/docs are 
 - `postal-codes.js` — `window.SRB_POSTAL_CODES = { "11000": "Beograd", ... }`, 1138 entries. Source: [stefancode/Srbija-gradovi](https://github.com/stefancode/Srbija-gradovi). Used by the paste parser to confirm a 5-digit run is a real Serbian postal code before treating it as one.
 - `service-worker.js` — network-first for HTML, stale-while-revalidate for same-origin assets and cdnjs/jsdelivr. **Bump `CACHE_VERSION` after every shell change** (it's the one signal users get on reload).
 - `manifest.json` — PWA manifest, theme `#0a4ea2`, relative icon paths.
-- `.htaccess` — Apache: `no-cache` for SW, `no-cache` for manifest, basic security headers. **Don't** add other rules without checking they don't break Pages.
 - Icons: `favicon.svg` (= `icon-source.svg`), `favicon.ico` (16+32+96), `favicon-96x96.png`, `apple-touch-icon.png` (180), `web-app-manifest-192x192.png`, `web-app-manifest-512x512.png`.
 - `ikonica.md` — design + how to regenerate PNGs from `icon-source.svg`. **Read this before touching any icon.**
 - `screenshots/desktop.png`, `screenshots/mobile.png` — README hero shots. Regen script lives in `/tmp/qrpay-shots/screenshot.js` (not in repo; it uses puppeteer-core + system Chrome). See "Screenshot regeneration" below.
