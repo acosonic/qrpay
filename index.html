@@ -33,7 +33,10 @@
 <link rel="shortcut icon" href="favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<!-- Self-hosted to avoid CDN compromise reaching a payment app.
+     qrcode-generator 1.4.4 by Kazuhiko Arase, MIT license:
+     https://github.com/kazuhikoarase/qrcode-generator -->
+<script src="qrcode.min.js"></script>
 <script src="postal-codes.js"></script>
 <style>
   :root {
@@ -395,6 +398,70 @@
   .save-inline.open { display: flex; }
   .save-inline input { flex: 1; }
   .save-inline button { min-width: auto; padding: 10px 14px; }
+
+  /* Inline warning notice (above Generate, above share row) */
+  .notice {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border: 1px solid #f0c000;
+    background: color-mix(in srgb, #f0c000 12%, transparent);
+    color: var(--text);
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+  .notice .icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
+  .notice strong { font-weight: 600; }
+
+  /* First-visit disclaimer modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 17, 23, 0.78);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay[hidden] { display: none; }
+  .modal-card {
+    background: var(--card);
+    color: var(--text);
+    border-radius: 12px;
+    max-width: 520px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .modal-card h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    color: #b3261e;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .modal-card p { margin: 10px 0; font-size: 14px; line-height: 1.5; }
+  .modal-card ul { margin: 10px 0; padding-left: 22px; font-size: 14px; line-height: 1.6; }
+  .modal-card .modal-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
+  .modal-card button { padding: 12px 22px; min-height: 44px; }
+
+  footer .disclaimer {
+    max-width: 700px;
+    margin: 0 auto 10px;
+    padding: 8px 16px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--muted);
+    text-align: center;
+  }
+
   footer {
     text-align: center;
     padding: 20px 16px;
@@ -526,6 +593,11 @@
       </div>
     </details>
 
+    <div class="notice" role="note">
+      <span class="icon">⚠️</span>
+      <span><strong>Pre generisanja proveri broj računa i iznos.</strong> Korisnik je sam odgovoran za tačnost podataka.</span>
+    </div>
+
     <div class="actions actions-primary" style="justify-content:flex-start">
       <button id="generate">Generiši QR kod</button>
       <button id="clear" class="secondary" type="button">Očisti</button>
@@ -537,6 +609,11 @@
     <h2 style="align-self:flex-start">QR kod</h2>
     <div id="qr-placeholder">QR kod će se prikazati ovde</div>
     <canvas id="qr-canvas" style="display:none"></canvas>
+
+    <div class="notice" role="note" style="margin-top: 12px">
+      <span class="icon">⚠️</span>
+      <span><strong>Pre deljenja proveri QR kod i podatke.</strong> Skenirani QR ne može da se ispravi nakon plaćanja.</span>
+    </div>
 
     <div class="actions">
       <button id="share" class="share" type="button" disabled>Podeli QR</button>
@@ -570,8 +647,30 @@
 </main>
 
 <footer>
-  Specifikacija: <a href="https://ips.nbs.rs/en/qr-validacija-generisanje" target="_blank" rel="noopener">NBS IPS QR</a>
+  <div class="disclaimer">
+    Aplikacija je samo alat za generisanje QR koda. <strong>Autor ne snosi odgovornost za pogrešna plaćanja, finansijske gubitke ili druge probleme</strong> nastale korišćenjem ove aplikacije ili generisanih QR kodova. Uvek proveri račun, iznos i sve podatke pre plaćanja i pre deljenja.
+  </div>
+  Specifikacija: <a href="https://ips.nbs.rs/en/qr-validacija-generisanje" target="_blank" rel="noopener">NBS IPS QR</a> ·
+  Izvor: <a href="https://github.com/acosonic/qrpay" target="_blank" rel="noopener">GitHub</a>
 </footer>
+
+<div id="disclaimer-modal" class="modal-overlay" hidden aria-modal="true" role="dialog" aria-labelledby="disclaimer-title">
+  <div class="modal-card">
+    <h2 id="disclaimer-title">⚠️ Važno upozorenje</h2>
+    <p>Ova aplikacija je <strong>alat za generisanje NBS IPS QR koda</strong> za instant plaćanje. Sama po sebi ne izvršava plaćanja niti komunicira sa bankom.</p>
+    <p><strong>Korisnik je sam odgovoran za:</strong></p>
+    <ul>
+      <li>Proveru tačnosti svih unetih podataka <em>pre</em> generisanja QR koda</li>
+      <li>Verifikaciju broja računa, iznosa, svrhe i ostalih polja <em>pre</em> plaćanja</li>
+      <li>Verifikaciju QR koda i podataka <em>pre</em> deljenja sa drugim osobama</li>
+    </ul>
+    <p>Autor aplikacije <strong>ne snosi odgovornost</strong> za pogrešna plaćanja, finansijske gubitke, prevare, ili bilo kakve druge probleme koji nastanu usled korišćenja ove aplikacije ili generisanih QR kodova.</p>
+    <p style="font-size: 12px; color: var(--muted);">Klikom na "Razumem i prihvatam" potvrđuješ da si pročitao/la ovo upozorenje i da ga prihvataš.</p>
+    <div class="modal-actions">
+      <button id="disclaimer-ok" type="button">Razumem i prihvatam</button>
+    </div>
+  </div>
+</div>
 
 <script>
 "use strict";
@@ -1548,6 +1647,25 @@ window.addEventListener("appinstalled", () => {
 
 // Hide install button if already running as PWA
 if (isStandalone() && installBtn) installBtn.classList.add("hidden");
+
+// ---------- First-visit disclaimer ----------
+
+const DISCLAIMER_KEY = "qrpay-disclaimer-ack";
+const disclaimerModal = document.getElementById("disclaimer-modal");
+const disclaimerOk = document.getElementById("disclaimer-ok");
+
+(function initDisclaimer() {
+  let acked = false;
+  try { acked = localStorage.getItem(DISCLAIMER_KEY) === "1"; } catch (e) {}
+  if (!acked && disclaimerModal) disclaimerModal.hidden = false;
+})();
+
+if (disclaimerOk) {
+  disclaimerOk.addEventListener("click", () => {
+    try { localStorage.setItem(DISCLAIMER_KEY, "1"); } catch (e) {}
+    if (disclaimerModal) disclaimerModal.hidden = true;
+  });
+}
 
 // ---------- Service worker ----------
 

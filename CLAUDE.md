@@ -51,6 +51,17 @@ Order of operations matters — fix carefully:
 
 If you change parser semantics, run the Node test inline in this file's history (search git log for "parser" or just rerun `tests` in the existing test snippets we used).
 
+## Security stance
+
+This is a **payment-adjacent app**, so the security posture is more conservative than typical static sites. Don't relax these without a clear reason:
+
+- **All JS is self-hosted.** `qrcode.min.js` is checked into the repo (vendored from [kazuhikoarase/qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator), MIT). **Don't introduce CDN `<script>` tags** for anything — a compromised CDN would let an attacker inject code into a payment flow. The SW's `isCacheableCdn` is hard-coded to `false` for the same reason.
+- **No build pipeline** in production → no `npm install` supply-chain surface. The repo *is* the deployed artifact.
+- **No analytics, no third-party trackers, no fonts from Google.** If you need a new dependency, vendor it.
+- **Payment data never leaves the browser.** Share-back links use `#hash` so the URL fragment doesn't reach servers; no fetch/XHR posts payment fields anywhere.
+- **First-visit disclaimer modal** (`#disclaimer-modal`) gates the app until acknowledged. Persistent via `localStorage["qrpay-disclaimer-ack"]`. Inline `.notice` banners sit above Generate and the share row. Footer carries the same disclaimer. If you remove or weaken these, you're removing a layer the owner explicitly asked for.
+- **GitHub org has 2FA.** Commits to `main` should preserve that — never push tokens, never link a less-protected automation account.
+
 ## Storage
 
 - `localStorage["qrpay-theme"]` — `"light"` | `"dark"`. Default uses `prefers-color-scheme`.

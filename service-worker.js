@@ -10,7 +10,7 @@
 // existing cache (e.g. removed paths). For ordinary deploys, the
 // stale-while-revalidate path is enough — users get fresh assets within
 // one visit.
-const CACHE_VERSION = 'v14';
+const CACHE_VERSION = 'v15';
 const CACHE_NAME = `qrpay-${CACHE_VERSION}`;
 
 const SCOPE = new URL(self.registration.scope).pathname;
@@ -18,6 +18,7 @@ const SCOPE = new URL(self.registration.scope).pathname;
 const SHELL = [
   SCOPE,
   SCOPE + 'index.html',
+  SCOPE + 'qrcode.min.js',
   SCOPE + 'postal-codes.js',
   SCOPE + 'manifest.json',
   SCOPE + 'favicon.svg',
@@ -54,9 +55,10 @@ function isSameOrigin(request) {
   return new URL(request.url).origin === self.location.origin;
 }
 
-function isCacheableCdn(request) {
-  const host = new URL(request.url).hostname;
-  return host === 'cdnjs.cloudflare.com' || host === 'cdn.jsdelivr.net';
+// All payment-critical JS is self-hosted (see README "Security"), so we no
+// longer treat any third-party CDN as cacheable. Kept for future flexibility.
+function isCacheableCdn(_request) {
+  return false;
 }
 
 async function staleWhileRevalidate(request) {

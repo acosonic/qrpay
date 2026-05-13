@@ -84,6 +84,45 @@ App je static — radi na bilo kom HTTP serveru (Apache, Nginx, GitHub Pages, Ne
 
 Trenutno se deploy-uje na `https://acosonic.com/qrcode/`.
 
+## Bezbednost
+
+Pošto se radi o aplikaciji koja generiše QR za **plaćanja**, primenjene su sledeće mere:
+
+### Supply chain
+- **Sve JavaScript biblioteke su self-hosted.** Trenutno samo [`qrcode-generator`](https://github.com/kazuhikoarase/qrcode-generator) v1.4.4 (MIT), commit-ovana u repo kao `qrcode.min.js`. Nema CDN poziva u runtime-u (`cdnjs`, `jsdelivr`, ili sličnih). Time je eliminisan vektor napada gde bi kompromitovan CDN mogao da injektuje zlonameran kod u payment app.
+- **Nema runtime npm/build pipeline-a.** Pošto nema `npm install` u produkciji, nema rizika od malicious package-a koji bi se pojavili izmedju verzija. Repo sadrži tačno onaj kod koji se izvršava.
+- **Nema third-party tracking script-ova**, nema Google Analytics, nema reklamnih mreža.
+
+### Komunikacija
+- **Sve je client-side.** Aplikacija ne šalje payment podatke na server. QR kod se generiše u browseru, deli se preko Web Share API-ja ili clipboard-a, sačuvani kodovi se drže u `localStorage`-u.
+- **Share-back linkovi koriste URL hash** (`#a=...&n=...`) umesto query string-a, pa payment podaci ne idu u HTTP server logove ni u `Referer` zaglavlja.
+- **HTTPS-only deploy** preko GitHub Pages (i Apache na primary domenu).
+
+### Repo integritet
+- GitHub nalog vlasnika repo-a (`acosonic`) zaštićen je **2FA** (two-factor authentication).
+- Repo je **public** — bilo ko može da pregleda kod i verifikuje da nema skrivene logike pre nego što koristi aplikaciju.
+- Commits su signed od Claude Code co-author-a (zbog transparencije).
+
+### Service worker
+- Network-first strategija za HTML znači da deploy-ovi propagiraju u prvoj poseti — kritični security fix-evi ne ostaju zaglavljeni iza stale cache-a.
+- `CACHE_VERSION` se ručno bumpuje pri svakoj promeni shell fajlova kako bi se osigurao clean roll-over.
+
+### Šta nije pokriveno
+- Aplikacija ne validira da je račun primaoca **stvarno taj koji korisnik želi**. MOD 97-10 kontrolna suma proverava da je broj sintaksno validan, ne da pripada nameravanom primaocu.
+- Aplikacija ne komunicira sa NBS validator-om za sintaksnu/semantičku proveru QR koda. Pre prvog plaćanja, korisniku se preporučuje da QR proveri na zvaničnom [NBS validator-u](https://ips.nbs.rs/en/qr-validacija-generisanje/validator-nbs-ips-qr-koda).
+- Aplikacija ne štiti od fizičke kompromitacije korisnikovog uređaja (`localStorage` je čitljiv ako neko ima pristup browser-u).
+
+## Disclaimer
+
+> ⚠️ **Ova aplikacija je samo alat za generisanje NBS IPS QR koda.** Sama po sebi ne izvršava plaćanja niti komunicira sa bankom.
+>
+> **Korisnik je sam odgovoran za:**
+> - Proveru tačnosti svih unetih podataka pre generisanja QR koda
+> - Verifikaciju broja računa, iznosa, svrhe i ostalih polja pre plaćanja
+> - Verifikaciju QR koda i podataka pre deljenja sa drugim osobama
+>
+> **Autor aplikacije ne snosi odgovornost** za pogrešna plaćanja, finansijske gubitke, prevare, ili bilo kakve druge probleme koji nastanu usled korišćenja ove aplikacije ili generisanih QR kodova.
+
 ## Reference
 
 - [NBS IPS QR specifikacija](https://ips.nbs.rs/en/qr-validacija-generisanje)
