@@ -451,6 +451,35 @@
   .modal-card ul { margin: 10px 0; padding-left: 22px; font-size: 14px; line-height: 1.6; }
   .modal-card .modal-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
   .modal-card button { padding: 12px 22px; min-height: 44px; }
+  .modal-card button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .consent-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    margin-top: 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--soft);
+    cursor: pointer;
+  }
+  .consent-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    flex-shrink: 0;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .consent-row span {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text);
+  }
+
+  /* Body lock while disclaimer modal is showing */
+  body.modal-blocked { overflow: hidden; }
 
   footer .disclaimer {
     max-width: 700px;
@@ -665,9 +694,12 @@
       <li>Verifikaciju QR koda i podataka <em>pre</em> deljenja sa drugim osobama</li>
     </ul>
     <p>Autor aplikacije <strong>ne snosi odgovornost</strong> za pogrešna plaćanja, finansijske gubitke, prevare, ili bilo kakve druge probleme koji nastanu usled korišćenja ove aplikacije ili generisanih QR kodova.</p>
-    <p style="font-size: 12px; color: var(--muted);">Klikom na "Razumem i prihvatam" potvrđuješ da si pročitao/la ovo upozorenje i da ga prihvataš.</p>
+    <label class="consent-row" for="disclaimer-check">
+      <input type="checkbox" id="disclaimer-check">
+      <span>Pročitao/la sam upozorenje, razumem ga i prihvatam da koristim aplikaciju na sopstvenu odgovornost.</span>
+    </label>
     <div class="modal-actions">
-      <button id="disclaimer-ok" type="button">Razumem i prihvatam</button>
+      <button id="disclaimer-ok" type="button" disabled>Razumem i prihvatam</button>
     </div>
   </div>
 </div>
@@ -1653,17 +1685,28 @@ if (isStandalone() && installBtn) installBtn.classList.add("hidden");
 const DISCLAIMER_KEY = "qrpay-disclaimer-ack";
 const disclaimerModal = document.getElementById("disclaimer-modal");
 const disclaimerOk = document.getElementById("disclaimer-ok");
+const disclaimerCheck = document.getElementById("disclaimer-check");
 
 (function initDisclaimer() {
   let acked = false;
   try { acked = localStorage.getItem(DISCLAIMER_KEY) === "1"; } catch (e) {}
-  if (!acked && disclaimerModal) disclaimerModal.hidden = false;
+  if (!acked && disclaimerModal) {
+    disclaimerModal.hidden = false;
+    document.body.classList.add("modal-blocked");
+    // Defer focus to next frame so the modal is rendered first
+    requestAnimationFrame(() => { if (disclaimerCheck) disclaimerCheck.focus(); });
+  }
 })();
 
-if (disclaimerOk) {
+if (disclaimerCheck && disclaimerOk) {
+  disclaimerCheck.addEventListener("change", () => {
+    disclaimerOk.disabled = !disclaimerCheck.checked;
+  });
   disclaimerOk.addEventListener("click", () => {
+    if (!disclaimerCheck.checked) return; // belt + suspenders
     try { localStorage.setItem(DISCLAIMER_KEY, "1"); } catch (e) {}
     if (disclaimerModal) disclaimerModal.hidden = true;
+    document.body.classList.remove("modal-blocked");
   });
 }
 
