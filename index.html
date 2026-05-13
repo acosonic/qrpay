@@ -307,11 +307,18 @@
   details.fields > summary::-webkit-details-marker { display: none; }
   details.fields > summary::after {
     content: "▾";
-    font-size: 12px;
+    font-size: 20px;
+    line-height: 1;
     color: var(--muted);
-    transition: transform 0.15s;
+    transition: transform 0.18s ease;
+    transform-origin: center;
+    margin-left: 8px;
   }
-  details.fields[open] > summary::after { transform: rotate(180deg); }
+  details.fields > summary:hover::after { color: var(--text); }
+  details.fields[open] > summary::after {
+    transform: rotate(180deg);
+    color: var(--text);
+  }
   details.fields > .details-body {
     padding: 0 14px 14px;
     background: var(--card);
