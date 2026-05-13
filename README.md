@@ -1,4 +1,15 @@
-# QR Pay — NBS IPS QR Generator
+<p align="center">
+  <img src="favicon.svg" alt="QR Pay logo" width="140">
+</p>
+
+<h1 align="center">QR Pay — NBS IPS QR Generator</h1>
+
+<p align="center">
+  <a href="https://acosonic.github.io/qrpay/"><img alt="GitHub Pages" src="https://img.shields.io/badge/demo-acosonic.github.io%2Fqrpay-0a4ea2?logo=github"></a>
+  <img alt="PWA" src="https://img.shields.io/badge/PWA-installable-1f7a3d">
+  <img alt="No build" src="https://img.shields.io/badge/build-none-5b6779">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-5b6779">
+</p>
 
 Web aplikacija za generisanje **NBS IPS QR koda** (Narodna banka Srbije, instant plaćanje) sa podrškom za deljenje preko Viber-a, WhatsApp-a, email-a i Web Share API-ja. Radi offline kao PWA, podaci o sačuvanim QR kodovima se čuvaju lokalno u browseru.
 
