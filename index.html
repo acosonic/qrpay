@@ -40,34 +40,49 @@
 <script src="postal-codes.js"></script>
 <style>
   :root {
-    --bg: #f5f6f8;
+    --bg: #f4f7fb;
     --card: #ffffff;
-    --border: #d8dde5;
-    --text: #1b2330;
-    --muted: #5b6779;
-    --input-bg: #ffffff;
-    --soft: #f0f3f7;
-    --accent: #0a4ea2;
-    --accent-hover: #083d80;
-    --danger: #b3261e;
-    --ok: #1f7a3d;
-    --viber: #7360f2;
-    --whatsapp: #25d366;
-    --shadow: 0 1px 2px rgba(0,0,0,0.04);
+    --card-strong: #fafdff;
+    --border: #d6e0ec;
+    --text: #162033;
+    --muted: #607086;
+    --input-bg: #fbfdff;
+    --soft: #eef4fb;
+    --accent: #0b61c3;
+    --accent-hover: #094f9f;
+    --accent-2: #0f9f8f;
+    --accent-2-hover: #0b8275;
+    --accent-soft: #e8f2ff;
+    --danger: #b42318;
+    --ok: #168352;
+    --warning: #c47a00;
+    --warning-soft: #fff4db;
+    --viber: #665cac;
+    --whatsapp: #148c52;
+    --email: #c94a3d;
+    --shadow: 0 18px 45px rgba(33, 55, 86, 0.09);
+    --shadow-sm: 0 8px 24px rgba(33, 55, 86, 0.07);
   }
   body.dark-theme {
-    --bg: #15181f;
-    --card: #1f242d;
-    --border: #2d333f;
-    --text: #e8eaef;
-    --muted: #9aa3b2;
-    --input-bg: #161a21;
-    --soft: #262c36;
-    --accent: #4a90e2;
-    --accent-hover: #6aa5e8;
-    --danger: #ef6e62;
-    --ok: #66c684;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3);
+    --bg: #101722;
+    --card: #172232;
+    --card-strong: #1c2a3d;
+    --border: #2c3d52;
+    --text: #edf4ff;
+    --muted: #9fb0c5;
+    --input-bg: #111b28;
+    --soft: #223247;
+    --accent: #58a6ff;
+    --accent-hover: #7bb9ff;
+    --accent-2: #34d1bf;
+    --accent-2-hover: #6ee7d8;
+    --accent-soft: #173453;
+    --danger: #ff8a7c;
+    --ok: #73d39b;
+    --warning: #ffd166;
+    --warning-soft: #3a2d16;
+    --shadow: 0 18px 45px rgba(0,0,0,0.35);
+    --shadow-sm: 0 8px 24px rgba(0,0,0,0.25);
   }
   body.dark-theme #qr-canvas {
     background: #ffffff; /* always white so QR stays scannable */
@@ -77,30 +92,76 @@
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg);
+    background:
+      radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 16%, transparent), transparent 34rem),
+      linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 70%, var(--bg)) 0, var(--bg) 340px);
     color: var(--text);
     line-height: 1.45;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    overflow-x: hidden;
   }
   header {
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 20px;
+    background: color-mix(in srgb, var(--card) 88%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    padding: 16px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.45);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .brand-mark {
+    width: 46px;
+    height: 46px;
+    border-radius: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    box-shadow: none;
+    flex-shrink: 0;
+  }
+  .brand-mark .icon { width: 24px; height: 24px; }
+  .brand-mark img {
+    width: 46px;
+    height: 46px;
+    display: block;
   }
   header .titles { min-width: 0; }
-  header h1 { margin: 0; font-size: 18px; font-weight: 600; }
-  header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  header h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  header p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   header .header-actions {
     display: flex;
     gap: 8px;
     flex-shrink: 0;
   }
   header .header-actions button {
-    background: transparent;
+    background: color-mix(in srgb, var(--card) 82%, transparent);
     color: var(--text);
     border: 1px solid var(--border);
     padding: 8px 12px;
@@ -111,62 +172,110 @@
     align-items: center;
     gap: 6px;
   }
-  header .header-actions button:hover { background: var(--soft); }
-  header .header-actions button .icon { font-size: 16px; line-height: 1; }
+  header .header-actions button:hover {
+    background: var(--soft);
+    border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  }
+  .icon {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  header .header-actions button .icon { width: 16px; height: 16px; }
   header .header-actions button.hidden { display: none; }
   header .header-actions .label { display: inline; }
   @media (max-width: 520px) {
     header .header-actions .label { display: none; }
     header .header-actions button { padding: 8px 10px; }
     header { padding: 12px 14px; }
+    .brand { gap: 10px; }
+    .brand-mark { width: 40px; height: 40px; border-radius: 0; }
+    .brand-mark .icon { width: 21px; height: 21px; }
+    .brand-mark img { width: 40px; height: 40px; }
     header h1 { font-size: 16px; }
     header p { font-size: 12px; }
+    .actions-primary button { flex: 1 1 100%; }
+    .share-row { flex-wrap: wrap; }
+    .share-row button { flex: 1 1 calc(50% - 4px); }
   }
 
   main {
     max-width: 1100px;
+    width: 100%;
+    min-width: 0;
     margin: 20px auto;
     padding: 0 16px;
     display: grid;
     grid-template-columns: 1fr 360px;
     gap: 20px;
   }
+  main > * { min-width: 0; }
 
   .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: linear-gradient(180deg, var(--card-strong), var(--card));
+    border: 1px solid color-mix(in srgb, var(--border) 86%, #fff);
+    border-radius: 14px;
     padding: 18px;
+    box-shadow: var(--shadow-sm);
+    min-width: 0;
   }
   .card h2 {
     margin: 0 0 14px;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--muted);
+    letter-spacing: 0.08em;
+    color: color-mix(in srgb, var(--accent) 76%, var(--muted));
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h2::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
   }
 
   textarea, input, select {
     width: 100%;
     padding: 12px;
-    border: 1px solid var(--border);
+    border: 1px solid color-mix(in srgb, var(--border) 90%, var(--accent-soft));
     border-radius: 8px;
     font: inherit;
     font-size: 16px; /* avoid iOS zoom */
     background: var(--input-bg);
     color: var(--text);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
   }
   textarea {
     resize: vertical;
-    min-height: 88px;
+    min-height: 104px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 14px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 44%, var(--input-bg)), var(--input-bg));
   }
   textarea:focus, input:focus, select:focus {
-    outline: 2px solid var(--accent);
-    outline-offset: -1px;
+    outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
   }
   label {
     display: block;
@@ -183,7 +292,7 @@
   .hint code { background: var(--soft); padding: 1px 5px; border-radius: 4px; }
 
   button {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 72%, var(--accent-2)) 100%);
     color: #fff;
     border: none;
     padding: 12px 18px;
@@ -191,25 +300,41 @@
     cursor: pointer;
     font: inherit;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 700;
     min-height: 44px; /* touch target */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 22%, transparent);
+    transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
   }
-  button:hover { background: var(--accent-hover); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button:hover {
+    background: linear-gradient(135deg, var(--accent-hover) 0%, color-mix(in srgb, var(--accent-hover) 72%, var(--accent-2-hover)) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 26%, transparent);
+  }
+  button:active { transform: translateY(0); }
+  button:disabled { opacity: 0.52; cursor: not-allowed; transform: none; box-shadow: none; }
   button.secondary {
-    background: transparent;
+    background: color-mix(in srgb, var(--card) 86%, var(--soft));
     color: var(--accent);
     border: 1px solid var(--border);
+    box-shadow: none;
   }
-  button.secondary:hover { background: var(--soft); }
-  button.viber { background: var(--viber); }
-  button.viber:hover { background: #5e4dd0; }
-  button.whatsapp { background: var(--whatsapp); }
-  button.whatsapp:hover { background: #1ebe5b; }
-  button.email { background: #ea4335; }
-  button.email:hover { background: #d33424; }
+  button.secondary:hover {
+    background: var(--soft);
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+    box-shadow: 0 8px 18px rgba(33, 55, 86, 0.08);
+  }
+  button.viber { background: linear-gradient(135deg, var(--viber), #8b7ff0); }
+  button.viber:hover { background: linear-gradient(135deg, #514995, #776bea); }
+  button.whatsapp { background: linear-gradient(135deg, var(--whatsapp), #2bc270); }
+  button.whatsapp:hover { background: linear-gradient(135deg, #0f7544, #22aa62); }
+  button.email { background: linear-gradient(135deg, var(--email), #e36b5e); }
+  button.email:hover { background: linear-gradient(135deg, #ad3b30, #d4574a); }
   button.share {
-    background: linear-gradient(135deg, #0a4ea2 0%, #1a73c2 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
   }
 
   .qr-area {
@@ -217,21 +342,24 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 62%, var(--card)), var(--card));
   }
   #qr-canvas {
     background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+    border-radius: 12px;
+    padding: 12px;
     max-width: 100%;
     height: auto;
+    box-shadow: 0 16px 36px rgba(18, 37, 63, 0.14);
   }
   #qr-placeholder {
     width: 100%;
     max-width: 280px;
     aspect-ratio: 1;
-    border: 1px dashed var(--border);
-    border-radius: 8px;
+    border: 1px dashed color-mix(in srgb, var(--accent) 38%, var(--border));
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -239,6 +367,7 @@
     font-size: 13px;
     padding: 20px;
     text-align: center;
+    background: color-mix(in srgb, var(--card) 72%, var(--accent-soft));
   }
   #ips-string {
     margin-top: 8px;
@@ -261,11 +390,17 @@
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
+    min-width: 0;
   }
   .actions button { flex: 1 1 auto; min-width: 120px; }
   .actions-primary { gap: 10px; }
   .share-row { display: flex; gap: 8px; width: 100%; }
-  .share-row button { flex: 1; padding: 12px 8px; font-size: 14px; }
+  .share-row button { flex: 1 1 0; min-width: 0; padding: 12px 8px; font-size: 14px; }
+  @media (max-width: 520px) {
+    .actions-primary button { flex: 1 1 100%; }
+    .share-row { flex-wrap: wrap; }
+    .share-row button { flex: 1 1 calc(50% - 4px); }
+  }
   .status {
     font-size: 13px;
     margin-top: 10px;
@@ -273,13 +408,47 @@
   }
   .status.ok { color: var(--ok); }
   .status.err { color: var(--danger); }
-  .recognized {
-    display: inline-block;
-    margin-top: 4px;
-    padding: 2px 8px;
-    background: color-mix(in srgb, var(--ok) 18%, transparent);
-    color: var(--ok);
-    border-radius: 12px;
+  .parse-summary {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--ok) 34%, var(--border));
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ok) 12%, var(--card)), var(--card));
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .parse-summary.warning {
+    border-color: color-mix(in srgb, var(--warning) 48%, var(--border));
+    background: linear-gradient(180deg, color-mix(in srgb, var(--warning-soft) 72%, var(--card)), var(--card));
+  }
+  .parse-summary-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .parse-summary-title .ok { color: var(--ok); }
+  .parse-summary-title .warn { color: var(--warning); }
+  .parse-summary dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 3px 10px;
+  }
+  .parse-summary dt {
+    color: var(--muted);
+  }
+  .parse-summary dd {
+    margin: 0;
+    color: var(--text);
+    min-width: 0;
+    word-break: break-word;
+  }
+  .parse-summary button {
+    min-height: 30px;
+    padding: 5px 9px;
     font-size: 12px;
   }
   details { margin-top: 12px; font-size: 12px; color: var(--muted); width: 100%; }
@@ -291,14 +460,14 @@
     overflow: hidden;
     font-size: inherit;
     color: var(--text);
-    background: var(--soft);
+    background: color-mix(in srgb, var(--accent-soft) 72%, var(--soft));
   }
   details.fields > summary {
     list-style: none;
     padding: 12px 14px;
     font-weight: 500;
     font-size: 14px;
-    color: var(--text);
+    color: color-mix(in srgb, var(--text) 88%, var(--accent));
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -356,7 +525,7 @@
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 12px;
-    background: var(--soft);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 64%, var(--card)), var(--card));
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -416,15 +585,17 @@
     gap: 10px;
     align-items: flex-start;
     padding: 10px 12px;
-    border: 1px solid #f0c000;
-    background: color-mix(in srgb, #f0c000 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--border));
+    border-left: 4px solid var(--warning);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--warning-soft) 80%, var(--card)), var(--card));
     color: var(--text);
     border-radius: 8px;
     font-size: 13px;
     line-height: 1.4;
     margin-bottom: 12px;
   }
-  .notice .icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
+  .notice .icon { width: 16px; height: 16px; margin-top: 1px; color: var(--warning); }
+  .notice span:not(.icon) { min-width: 0; overflow-wrap: anywhere; }
   .notice strong { font-weight: 600; }
 
   /* First-visit disclaimer modal */
@@ -438,14 +609,15 @@
     padding: 16px;
     z-index: 1000;
     backdrop-filter: blur(2px);
+    overflow-x: hidden;
   }
   .modal-overlay[hidden] { display: none; }
   .modal-card {
     background: var(--card);
     color: var(--text);
     border-radius: 12px;
-    max-width: 520px;
-    width: 100%;
+    width: min(520px, calc(100vw - 32px));
+    min-width: 0;
     max-height: 90vh;
     overflow-y: auto;
     padding: 24px;
@@ -460,8 +632,9 @@
   }
   .modal-card p { margin: 10px 0; font-size: 14px; line-height: 1.5; }
   .modal-card ul { margin: 10px 0; padding-left: 22px; font-size: 14px; line-height: 1.6; }
-  .modal-card .modal-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
-  .modal-card button { padding: 12px 22px; min-height: 44px; }
+  .modal-card p, .modal-card li, .modal-card span { overflow-wrap: anywhere; }
+  .modal-card .modal-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; margin-top: 18px; }
+  .modal-card button { padding: 12px 22px; min-height: 44px; max-width: 100%; white-space: normal; }
   .modal-card button:disabled { opacity: 0.45; cursor: not-allowed; }
 
   .consent-row {
@@ -487,6 +660,7 @@
     font-size: 13px;
     line-height: 1.45;
     color: var(--text);
+    min-width: 0;
   }
 
   /* Body lock while disclaimer modal is showing */
@@ -528,22 +702,106 @@
     .actions button { flex: 1 1 100%; }
     .share-row { flex-wrap: wrap; }
     .share-row button { flex: 1 1 calc(50% - 4px); }
+    .modal-card { padding: 20px 16px; }
+    .modal-card .modal-actions button { width: 100%; }
   }
 </style>
 </head>
 <body>
+<svg aria-hidden="true" width="0" height="0" style="position:absolute;overflow:hidden">
+  <!-- Local subset inspired by Tabler Icons: 24px grid, clean rounded stroke icons. -->
+  <symbol id="icon-qr" viewBox="0 0 24 24">
+    <path d="M4 4h6v6H4z"></path>
+    <path d="M14 4h6v6h-6z"></path>
+    <path d="M4 14h6v6H4z"></path>
+    <path d="M14 14h2v2h-2z"></path>
+    <path d="M18 14h2v4h-4"></path>
+    <path d="M14 18h2v2h-2z"></path>
+    <path d="M18 20h2"></path>
+  </symbol>
+  <symbol id="icon-wand" viewBox="0 0 24 24">
+    <path d="M15 4V2"></path>
+    <path d="M15 16v-2"></path>
+    <path d="M8 9h2"></path>
+    <path d="M20 9h2"></path>
+    <path d="m17.8 6.2 1.4-1.4"></path>
+    <path d="m10.8 13.2-1.4 1.4"></path>
+    <path d="m17.8 11.8 1.4 1.4"></path>
+    <path d="M3 21 14 10"></path>
+    <path d="m5 19 4-4"></path>
+  </symbol>
+  <symbol id="icon-eraser" viewBox="0 0 24 24">
+    <path d="m7 21-4-4 11-11a2.8 2.8 0 0 1 4 0l1 1a2.8 2.8 0 0 1 0 4l-10 10"></path>
+    <path d="M6 14l4 4"></path>
+    <path d="M12 20h8"></path>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24">
+    <circle cx="18" cy="5" r="3"></circle>
+    <circle cx="6" cy="12" r="3"></circle>
+    <circle cx="18" cy="19" r="3"></circle>
+    <path d="m8.6 10.5 6.8-4"></path>
+    <path d="m8.6 13.5 6.8 4"></path>
+  </symbol>
+  <symbol id="icon-download" viewBox="0 0 24 24">
+    <path d="M12 3v12"></path>
+    <path d="m7 10 5 5 5-5"></path>
+    <path d="M5 21h14"></path>
+  </symbol>
+  <symbol id="icon-link" viewBox="0 0 24 24">
+    <path d="M9 15 15 9"></path>
+    <path d="M11 6h3a5 5 0 0 1 0 10h-3"></path>
+    <path d="M13 18h-3a5 5 0 0 1 0-10h3"></path>
+  </symbol>
+  <symbol id="icon-mail" viewBox="0 0 24 24">
+    <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+    <path d="m3 7 9 6 9-6"></path>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24">
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2"></path>
+    <path d="M12 20v2"></path>
+    <path d="m4.93 4.93 1.41 1.41"></path>
+    <path d="m17.66 17.66 1.41 1.41"></path>
+    <path d="M2 12h2"></path>
+    <path d="M20 12h2"></path>
+    <path d="m6.34 17.66-1.41 1.41"></path>
+    <path d="m19.07 4.93-1.41 1.41"></path>
+  </symbol>
+  <symbol id="icon-smartphone" viewBox="0 0 24 24">
+    <rect width="10" height="20" x="7" y="2" rx="2"></rect>
+    <path d="M12 18h.01"></path>
+  </symbol>
+  <symbol id="icon-triangle-alert" viewBox="0 0 24 24">
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+    <path d="M12 9v4"></path>
+    <path d="M12 17h.01"></path>
+  </symbol>
+  <symbol id="icon-save" viewBox="0 0 24 24">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path>
+    <path d="M17 21v-8H7v8"></path>
+    <path d="M7 3v5h8"></path>
+  </symbol>
+</svg>
 <header>
-  <div class="titles">
-    <h1>NBS IPS QR Generator</h1>
-    <p>Generiše QR kod po specifikaciji NBS za instant plaćanje</p>
+  <div class="brand">
+    <div class="brand-mark">
+      <img src="favicon.svg" alt="" aria-hidden="true">
+    </div>
+    <div class="titles">
+      <h1>NBS IPS QR Generator</h1>
+      <p>Generiše QR kod po specifikaciji NBS za instant plaćanje</p>
+    </div>
   </div>
   <div class="header-actions">
     <button type="button" id="theme-toggle" onclick="toggleTheme()" aria-label="Promeni temu">
-      <span class="icon" id="theme-icon">🌙</span>
+      <span class="icon" id="theme-icon" aria-hidden="true"></span>
       <span class="label" id="theme-label">Noćna</span>
     </button>
     <button type="button" id="install-btn" class="hidden" onclick="installApp()" aria-label="Instaliraj aplikaciju">
-      <span class="icon">📱</span>
+      <span class="icon" aria-hidden="true"><svg><use href="#icon-smartphone"></use></svg></span>
       <span class="label">Instaliraj</span>
     </button>
   </div>
@@ -557,7 +815,7 @@
       </summary>
       <div class="details-body">
         <div id="saved-list"></div>
-        <div id="saved-empty">Nemaš sačuvanih QR kodova. Generiši kod pa klikni <strong>★ Sačuvaj kod</strong>.</div>
+        <div id="saved-empty">Nemaš sačuvanih QR kodova. Generiši kod pa klikni <strong>Sačuvaj kod</strong>.</div>
       </div>
     </details>
   </section>
@@ -634,13 +892,13 @@
     </details>
 
     <div class="notice" role="note">
-      <span class="icon">⚠️</span>
+      <span class="icon" aria-hidden="true"><svg><use href="#icon-triangle-alert"></use></svg></span>
       <span><strong>Pre generisanja proveri broj računa i iznos.</strong> Korisnik je sam odgovoran za tačnost podataka.</span>
     </div>
 
     <div class="actions actions-primary" style="justify-content:flex-start">
-      <button id="generate">Generiši QR kod</button>
-      <button id="clear" class="secondary" type="button">Očisti</button>
+      <button id="generate"><span class="icon" aria-hidden="true"><svg><use href="#icon-wand"></use></svg></span>Generiši QR kod</button>
+      <button id="clear" class="secondary" type="button"><span class="icon" aria-hidden="true"><svg><use href="#icon-eraser"></use></svg></span>Očisti</button>
     </div>
     <div id="form-status" class="status"></div>
   </section>
@@ -651,24 +909,24 @@
     <canvas id="qr-canvas" style="display:none"></canvas>
 
     <div class="notice" role="note" style="margin-top: 12px">
-      <span class="icon">⚠️</span>
+      <span class="icon" aria-hidden="true"><svg><use href="#icon-triangle-alert"></use></svg></span>
       <span><strong>Pre deljenja proveri QR kod i podatke.</strong> Skenirani QR ne može da se ispravi nakon plaćanja.</span>
     </div>
 
     <div class="actions">
-      <button id="share" class="share" type="button" disabled>Podeli QR</button>
-      <button id="download" class="secondary" type="button" disabled>Preuzmi PNG</button>
+      <button id="share" class="share" type="button" disabled><span class="icon" aria-hidden="true"><svg><use href="#icon-share"></use></svg></span>Podeli QR</button>
+      <button id="download" class="secondary" type="button" disabled><span class="icon" aria-hidden="true"><svg><use href="#icon-download"></use></svg></span>Preuzmi PNG</button>
     </div>
 
     <div class="share-row" style="margin-top:8px">
       <button id="share-viber" class="viber" type="button" disabled>Viber</button>
       <button id="share-whatsapp" class="whatsapp" type="button" disabled>WhatsApp</button>
-      <button id="share-email" class="email" type="button" disabled>Email</button>
-      <button id="copy-string" class="secondary" type="button" disabled>Kopiraj link</button>
+      <button id="share-email" class="email" type="button" disabled><span class="icon" aria-hidden="true"><svg><use href="#icon-mail"></use></svg></span>Email</button>
+      <button id="copy-string" class="secondary" type="button" disabled><span class="icon" aria-hidden="true"><svg><use href="#icon-link"></use></svg></span>Kopiraj link</button>
     </div>
 
     <div class="actions" style="margin-top:8px">
-      <button id="save-qr" class="secondary" type="button" disabled>★ Sačuvaj kod</button>
+      <button id="save-qr" class="secondary" type="button" disabled><span class="icon" aria-hidden="true"><svg><use href="#icon-save"></use></svg></span> Sačuvaj kod</button>
     </div>
     <div class="save-inline" id="save-inline">
       <input id="save-label" type="text" maxlength="60" placeholder="Naziv (npr. Plata, Internet)">
@@ -696,7 +954,7 @@
 
 <div id="disclaimer-modal" class="modal-overlay" hidden aria-modal="true" role="dialog" aria-labelledby="disclaimer-title">
   <div class="modal-card">
-    <h2 id="disclaimer-title">⚠️ Važno upozorenje</h2>
+    <h2 id="disclaimer-title">Važno upozorenje</h2>
     <p>Ova aplikacija je <strong>alat za generisanje NBS IPS QR koda</strong> za instant plaćanje. Sama po sebi ne izvršava plaćanja niti komunicira sa bankom.</p>
     <p><strong>Korisnik je sam odgovoran za:</strong></p>
     <ul>
@@ -1105,23 +1363,76 @@ function applyParsed(parsed, force = false) {
   if (parsed.street && (force || !streetInput.value.trim())) streetInput.value = parsed.street;
   if (parsed.city && (force || !cityInput.value.trim())) cityInput.value = parsed.city;
 
-  // Display recognition badge
-  const badges = [];
-  if (parsed.account) badges.push("račun");
-  if (parsed.bank) badges.push("banka: " + parsed.bank);
-  if (parsed.postalCode) badges.push(parsed.postalCode);
-  if (parsed.city && parsed.postalCode) {
-    const cityName = parsed.city.replace(parsed.postalCode, "").trim();
-    badges.push("grad: " + cityName);
-  }
-  if (badges.length) {
-    parseHint.innerHTML = '<span class="recognized">✓ Prepoznato: ' + badges.join(", ") + '</span>';
-  } else {
-    parseHint.innerHTML = "";
-  }
+  renderParseHint(parsed);
+  revealMissingParsedFields(force);
 }
 
-raw.addEventListener("input", () => applyParsed(parsePastedText(raw.value)));
+function renderParseHint(parsed) {
+  const rows = [];
+  if (parsed.account) rows.push(["Račun", parsed.account]);
+  if (parsed.name) rows.push(["Primalac", parsed.name]);
+  if (parsed.street) rows.push(["Adresa", parsed.street]);
+  if (parsed.city) rows.push(["Grad", parsed.city]);
+  if (parsed.bank) rows.push(["Banka", parsed.bank + " (nije deo QR koda)"]);
+
+  const hasRaw = raw.value.trim().length > 0;
+  if (!rows.length) {
+    parseHint.innerHTML = hasRaw
+      ? '<div class="parse-summary warning"><div class="parse-summary-title"><span class="warn">Nije prepoznat račun ili primalac.</span><button type="button" class="secondary" data-open-fields>Izmeni ručno</button></div></div>'
+      : "";
+    bindParseHintActions();
+    return;
+  }
+
+  const missing = [];
+  if (!accountInput.value.trim()) missing.push("račun");
+  if (!nameInput.value.trim()) missing.push("primalac");
+  const title = missing.length
+    ? `Prepoznato delimično, dopuni: ${missing.join(", ")}.`
+    : "Prepoznati podaci";
+  const statusClass = missing.length ? "warn" : "ok";
+  const summaryClass = missing.length ? "parse-summary warning" : "parse-summary";
+  const rowHtml = rows.map(([label, value]) => (
+    `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd>`
+  )).join("");
+
+  parseHint.innerHTML = `
+    <div class="${summaryClass}">
+      <div class="parse-summary-title">
+        <span class="${statusClass}">${escapeHtml(title)}</span>
+        <button type="button" class="secondary" data-open-fields>Izmeni ručno</button>
+      </div>
+      <dl>${rowHtml}</dl>
+    </div>
+  `;
+  bindParseHintActions();
+}
+
+function bindParseHintActions() {
+  const btn = parseHint.querySelector("[data-open-fields]");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    moreFields.open = true;
+    focusFirstMissingRequiredField();
+  });
+}
+
+function revealMissingParsedFields(shouldFocus) {
+  if (!raw.value.trim()) return;
+  const missingRequired = !accountInput.value.trim() || !nameInput.value.trim();
+  if (!missingRequired) return;
+  moreFields.open = true;
+  if (shouldFocus) focusFirstMissingRequiredField();
+}
+
+function focusFirstMissingRequiredField() {
+  const target = !accountInput.value.trim() ? accountInput :
+                 !nameInput.value.trim() ? nameInput : null;
+  if (!target) return;
+  setTimeout(() => target.focus(), 0);
+}
+
+raw.addEventListener("input", () => applyParsed(parsePastedText(raw.value), false));
 raw.addEventListener("paste", () => {
   setTimeout(() => applyParsed(parsePastedText(raw.value), true), 0);
 });
@@ -1565,8 +1876,11 @@ renderSavedList();
 // populate the form and immediately generate the QR. Used by share links.
 
 function applyHashIfAny() {
-  if (!location.hash || location.hash.length < 2) return false;
-  const params = new URLSearchParams(location.hash.slice(1));
+  const rawParams = location.hash && location.hash.length > 1
+    ? location.hash.slice(1)
+    : (location.search && location.search.length > 1 ? location.search.slice(1) : "");
+  if (!rawParams) return false;
+  const params = new URLSearchParams(rawParams);
   const account = params.get("a");
   const name = params.get("n");
   if (!account && !name) return false;
@@ -1612,15 +1926,19 @@ function applyTheme(theme) {
   const meta = document.querySelector('meta[name="theme-color"]');
   if (theme === "dark") {
     document.body.classList.add("dark-theme");
-    if (icon) icon.textContent = "☀️";
+    if (icon) icon.innerHTML = iconUse("sun");
     if (label) label.textContent = "Dnevna";
     if (meta) meta.setAttribute("content", "#15181f");
   } else {
     document.body.classList.remove("dark-theme");
-    if (icon) icon.textContent = "🌙";
+    if (icon) icon.innerHTML = iconUse("moon");
     if (label) label.textContent = "Noćna";
     if (meta) meta.setAttribute("content", "#0a4ea2");
   }
+}
+
+function iconUse(name) {
+  return `<svg><use href="#icon-${name}"></use></svg>`;
 }
 
 function toggleTheme() {
