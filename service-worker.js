@@ -10,7 +10,7 @@
 // existing cache (e.g. removed paths). For ordinary deploys, the
 // stale-while-revalidate path is enough — users get fresh assets within
 // one visit.
-const CACHE_VERSION = 'v26';
+const CACHE_VERSION = 'v27';
 const CACHE_NAME = `qrpay-${CACHE_VERSION}`;
 
 const SCOPE = new URL(self.registration.scope).pathname;

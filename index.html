@@ -520,30 +520,24 @@
   }
 
   /* Saved QR codes */
-  /* Saved-codes section is a layout grouping, not its own card — so the saved-item
-     cards inside sit directly on the grid column and visually match other cards
-     (Unos podataka, QR kod) in width. */
-  .saved-card {
-    grid-column: 1 / -1;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 0;
-    overflow: visible;
-  }
-  .saved-card > details.fields { margin: 0; border: none; border-radius: 0; background: transparent; }
+  /* Outer saved-codes card (rounded white container) + inner saved-item mini-cards.
+     details-body padding is 0 so the inner saved-item extends edge-to-edge with the
+     outer card (i.e. visual width matches the Unos podataka card below). */
+  .saved-card { grid-column: 1 / -1; padding: 0; overflow: hidden; }
+  .saved-card > details.fields { margin: 0; border: none; border-radius: 10px; background: transparent; }
   .saved-card > details.fields > summary {
-    padding: 4px 4px 10px;
-    font-size: 13px;
+    padding: 16px 18px;
+    font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: var(--muted);
     font-weight: 600;
-    background: transparent;
   }
   .saved-card > details.fields[open] > summary { color: var(--text); }
-  .saved-card > details.fields > .details-body { background: transparent; padding: 0; border-top: none; }
+  .saved-card > details.fields > .details-body {
+    background: var(--card);
+    padding: 0 0 14px 0;
+  }
   .muted-count {
     margin-left: 6px;
     background: var(--soft);
@@ -555,30 +549,37 @@
     letter-spacing: 0;
     text-transform: none;
   }
-  /* Saved-item is a full card, same width / radius as .card so it visually parallels
-     the Unos podataka and QR kod cards. Bg preserves the accent-soft tint for
-     distinction from neutral form cards. */
+  /* Saved-item: mini-card inside the outer saved-card. Bg gradient (accent-soft)
+     distinguishes it from neutral content cards. Extends edge-to-edge with the
+     saved-card on mobile; on wide screens becomes a grid for density. */
   #saved-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
   .saved-item {
-    border: 1px solid color-mix(in srgb, var(--border) 86%, #fff);
-    border-radius: 14px;
-    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 12px 18px;
     background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 64%, var(--card)), var(--card));
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
+    border-left: none;
+    border-right: none;
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
-  /* On wider screens, fan saved items out as a grid (multiple visible at once). */
   @media (min-width: 720px) {
     #saved-list {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
+      padding: 0 14px;
+    }
+    .saved-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
     }
   }
   .saved-item .title {
