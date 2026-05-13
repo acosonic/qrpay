@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="QR Pay">
+  <defs>
+    <clipPath id="rounded">
+      <rect width="512" height="512" rx="108"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#rounded)">
+    <path fill="#C6363C" d="M 0 0 L 512 0 L 512 178 Q 384 215, 256 178 Q 128 141, 0 178 Z"/>
+    <path fill="#0C4076" d="M 0 178 Q 128 141, 256 178 Q 384 215, 512 178 L 512 348 Q 384 311, 256 348 Q 128 385, 0 348 Z"/>
+    <path fill="#FFFFFF" d="M 0 348 Q 128 385, 256 348 Q 384 311, 512 348 L 512 512 L 0 512 Z"/>
+  </g>
+  <rect x="104" y="112" width="304" height="288" rx="40"
+        fill="#FFFFFF" stroke="#1A1A1A" stroke-width="22" stroke-linejoin="round" paint-order="stroke fill"/>
+
+  <rect x="142" y="152" width="96" height="96" rx="16" fill="#F4F6F8"/>
+  <rect x="160" y="170" width="28" height="28" rx="5" fill="#1A1A1A"/>
+  <rect x="202" y="170" width="18" height="18" rx="4" fill="#1A1A1A"/>
+  <rect x="160" y="212" width="18" height="18" rx="4" fill="#1A1A1A"/>
+  <rect x="198" y="204" width="30" height="30" rx="5" fill="#1A1A1A"/>
+
+  <text x="272" y="205"
+        fill="#1A1A1A"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="48"
+        font-weight="800"
+        letter-spacing="0">RSD</text>
+
+  <path d="M155 316 L212 350 L342 254"
+        fill="none" stroke="#0C4076" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M155 316 L212 350 L342 254"
+        fill="none" stroke="#1A1A1A" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="286" y="288" width="24" height="24" rx="5" fill="#C6363C"/>
+  <rect x="324" y="288" width="18" height="18" rx="4" fill="#1A1A1A"/>
+
+</svg>

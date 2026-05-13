@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a4ea2">
+<title>NBS IPS QR Generator</title>
+
+<meta name="description" content="Generator NBS IPS QR koda za instant plaćanje u Srbiji. Nalepi podatke, generiši QR, podeli preko Viber/WhatsApp.">
+<meta name="author" content="QR Pay">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="NBS IPS QR Generator">
+<meta property="og:description" content="Brzo generisanje NBS IPS QR koda za instant plaćanje u Srbiji.">
+<meta property="og:image" content="web-app-manifest-512x512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:locale" content="sr_RS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="web-app-manifest-512x512.png">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QR Pay">
+
+<!-- Favicons -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="postal-codes.js"></script>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --border: #d8dde5;
+    --text: #1b2330;
+    --muted: #5b6779;
+    --input-bg: #ffffff;
+    --soft: #f0f3f7;
+    --accent: #0a4ea2;
+    --accent-hover: #083d80;
+    --danger: #b3261e;
+    --ok: #1f7a3d;
+    --viber: #7360f2;
+    --whatsapp: #25d366;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  body.dark-theme {
+    --bg: #15181f;
+    --card: #1f242d;
+    --border: #2d333f;
+    --text: #e8eaef;
+    --muted: #9aa3b2;
+    --input-bg: #161a21;
+    --soft: #262c36;
+    --accent: #4a90e2;
+    --accent-hover: #6aa5e8;
+    --danger: #ef6e62;
+    --ok: #66c684;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  body.dark-theme #qr-canvas {
+    background: #ffffff; /* always white so QR stays scannable */
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.45;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  header .titles { min-width: 0; }
+  header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  header .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  header .header-actions button {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    font-size: 13px;
+    min-height: 36px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  header .header-actions button:hover { background: var(--soft); }
+  header .header-actions button .icon { font-size: 16px; line-height: 1; }
+  header .header-actions button.hidden { display: none; }
+  header .header-actions .label { display: inline; }
+  @media (max-width: 520px) {
+    header .header-actions .label { display: none; }
+    header .header-actions button { padding: 8px 10px; }
+    header { padding: 12px 14px; }
+    header h1 { font-size: 16px; }
+    header p { font-size: 12px; }
+  }
+
+  main {
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 0 16px;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .card h2 {
+    margin: 0 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  textarea, input, select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font: inherit;
+    font-size: 16px; /* avoid iOS zoom */
+    background: var(--input-bg);
+    color: var(--text);
+  }
+  textarea {
+    resize: vertical;
+    min-height: 88px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+  }
+  textarea:focus, input:focus, select:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+    border-color: var(--accent);
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  label .req { color: var(--danger); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row { margin-bottom: 14px; }
+  .row:last-child { margin-bottom: 0; }
+  .hint { margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .hint code { background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    min-height: 44px; /* touch target */
+  }
+  button:hover { background: var(--accent-hover); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+  button.secondary:hover { background: var(--soft); }
+  button.viber { background: var(--viber); }
+  button.viber:hover { background: #5e4dd0; }
+  button.whatsapp { background: var(--whatsapp); }
+  button.whatsapp:hover { background: #1ebe5b; }
+  button.email { background: #ea4335; }
+  button.email:hover { background: #d33424; }
+  button.share {
+    background: linear-gradient(135deg, #0a4ea2 0%, #1a73c2 100%);
+  }
+
+  .qr-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  #qr-canvas {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    max-width: 100%;
+    height: auto;
+  }
+  #qr-placeholder {
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 1;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 20px;
+    text-align: center;
+  }
+  #ips-string {
+    margin-top: 8px;
+    width: 100%;
+    word-break: break-all;
+    background: var(--soft);
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: pre-wrap;
+    text-align: left;
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+  .actions button { flex: 1 1 auto; min-width: 120px; }
+  .actions-primary { gap: 10px; }
+  .share-row { display: flex; gap: 8px; width: 100%; }
+  .share-row button { flex: 1; padding: 12px 8px; font-size: 14px; }
+  .status {
+    font-size: 13px;
+    margin-top: 10px;
+    min-height: 18px;
+  }
+  .status.ok { color: var(--ok); }
+  .status.err { color: var(--danger); }
+  .recognized {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px 8px;
+    background: color-mix(in srgb, var(--ok) 18%, transparent);
+    color: var(--ok);
+    border-radius: 12px;
+    font-size: 12px;
+  }
+  details { margin-top: 12px; font-size: 12px; color: var(--muted); width: 100%; }
+  details summary { cursor: pointer; padding: 4px 0; }
+  details.fields {
+    margin: 4px 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: inherit;
+    color: var(--text);
+    background: var(--soft);
+  }
+  details.fields > summary {
+    list-style: none;
+    padding: 12px 14px;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+  }
+  details.fields > summary::-webkit-details-marker { display: none; }
+  details.fields > summary::after {
+    content: "▾";
+    font-size: 12px;
+    color: var(--muted);
+    transition: transform 0.15s;
+  }
+  details.fields[open] > summary::after { transform: rotate(180deg); }
+  details.fields > .details-body {
+    padding: 0 14px 14px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+
+  /* Saved QR codes */
+  .saved-card { grid-column: 1 / -1; padding: 0; overflow: hidden; }
+  .saved-card > details.fields { margin: 0; border: none; border-radius: 10px; background: transparent; }
+  .saved-card > details.fields > summary { padding: 16px 18px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+  .saved-card > details.fields[open] > summary { color: var(--text); }
+  .saved-card > details.fields > .details-body { background: var(--card); padding: 16px 18px; }
+  .muted-count {
+    margin-left: 6px;
+    background: var(--soft);
+    color: var(--muted);
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  #saved-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+  }
+  .saved-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    background: var(--soft);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .saved-item .title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    word-break: break-word;
+  }
+  .saved-item .meta {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  .saved-item .item-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .saved-item .item-actions button {
+    flex: 1;
+    padding: 8px 6px;
+    font-size: 13px;
+    min-height: 36px;
+  }
+  .saved-item .item-actions .danger {
+    flex: 0 0 auto;
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+  }
+  .saved-item .item-actions .danger:hover {
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+  }
+  #saved-empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 24px 12px;
+    font-size: 13px;
+  }
+  .save-inline {
+    display: none;
+    gap: 8px;
+    margin-top: 10px;
+    width: 100%;
+  }
+  .save-inline.open { display: flex; }
+  .save-inline input { flex: 1; }
+  .save-inline button { min-width: auto; padding: 10px 14px; }
+  footer {
+    text-align: center;
+    padding: 20px 16px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  footer a { color: var(--muted); }
+
+  /* Mobile */
+  @media (max-width: 840px) {
+    main {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding: 0 12px;
+      margin: 12px auto;
+    }
+    .card { padding: 16px; border-radius: 8px; }
+    .grid2 { grid-template-columns: 1fr; gap: 12px; }
+    header { padding: 14px 16px; }
+    header h1 { font-size: 17px; }
+    #qr-canvas, #qr-placeholder { max-width: 320px; }
+  }
+  @media (max-width: 400px) {
+    .actions button { flex: 1 1 100%; }
+    .share-row { flex-wrap: wrap; }
+    .share-row button { flex: 1 1 calc(50% - 4px); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="titles">
+    <h1>NBS IPS QR Generator</h1>
+    <p>Generiše QR kod po specifikaciji NBS za instant plaćanje</p>
+  </div>
+  <div class="header-actions">
+    <button type="button" id="theme-toggle" onclick="toggleTheme()" aria-label="Promeni temu">
+      <span class="icon" id="theme-icon">🌙</span>
+      <span class="label" id="theme-label">Noćna</span>
+    </button>
+    <button type="button" id="install-btn" class="hidden" onclick="installApp()" aria-label="Instaliraj aplikaciju">
+      <span class="icon">📱</span>
+      <span class="label">Instaliraj</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="card saved-card">
+    <details class="fields" id="saved-toggle">
+      <summary>
+        <span>Moji QR kodovi <span id="saved-count" class="muted-count"></span></span>
+      </summary>
+      <div class="details-body">
+        <div id="saved-list"></div>
+        <div id="saved-empty">Nemaš sačuvanih QR kodova. Generiši kod pa klikni <strong>★ Sačuvaj kod</strong>.</div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>Unos podataka</h2>
+
+    <div class="row">
+      <label for="raw">Nalepi podatke</label>
+      <textarea id="raw" placeholder="npr. 205-0099887766554-25 Komercijalna banka Petar Petrovic, 21000 Novi Sad, Bulevar Oslobodjenja 22"></textarea>
+      <div class="hint">Račun, banka, poštanski broj i grad se automatski prepoznaju.</div>
+      <div id="parse-hint"></div>
+    </div>
+
+    <div class="row">
+      <label for="amount">Iznos u RSD <span class="hint" style="margin:0">(opciono — prazno znači "otvoren iznos")</span></label>
+      <input id="amount" type="text" inputmode="decimal" placeholder="npr. 1500,00">
+    </div>
+
+    <details class="fields" id="more-fields">
+      <summary>Više opcija (primalac, adresa, šifra plaćanja…)</summary>
+      <div class="details-body">
+        <div class="row">
+          <label for="account">Račun primaoca <span class="req">*</span></label>
+          <input id="account" type="text" inputmode="numeric" placeholder="205-0099887766554-25">
+        </div>
+
+        <div class="row">
+          <label for="name">Ime/naziv primaoca <span class="req">*</span></label>
+          <input id="name" type="text" maxlength="70" placeholder="npr. Petar Petrovic">
+        </div>
+
+        <div class="row grid2">
+          <div>
+            <label for="street">Ulica i broj</label>
+            <input id="street" type="text" maxlength="70" placeholder="npr. Bulevar Oslobodjenja 22">
+          </div>
+          <div>
+            <label for="city">Poštanski broj i grad</label>
+            <input id="city" type="text" maxlength="70" placeholder="npr. 21000 Novi Sad">
+          </div>
+        </div>
+
+        <div class="row grid2">
+          <div>
+            <label for="payment-code">Šifra plaćanja <span class="req">*</span></label>
+            <select id="payment-code">
+              <option value="189" selected>189 — Transakcije po nalogu građana</option>
+              <option value="221">221 — Promet robe i usluga</option>
+              <option value="222">222 — Usluge javnih preduzeća</option>
+              <option value="253">253 — Uplata pazara</option>
+              <option value="254">254 — Plaćanje računa za komunalije</option>
+              <option value="289">289 — Transakcije po nalogu građana – ostalo</option>
+              <option value="290">290 — Druge transakcije</option>
+            </select>
+          </div>
+          <div>
+            <label for="purpose">Svrha plaćanja</label>
+            <input id="purpose" type="text" maxlength="35" placeholder="npr. Uplata po racunu">
+          </div>
+        </div>
+
+        <div class="row grid2">
+          <div>
+            <label for="payer">Naziv platioca</label>
+            <input id="payer" type="text" maxlength="70" placeholder="Ime i prezime platioca">
+          </div>
+          <div>
+            <label for="reference">Poziv na broj</label>
+            <input id="reference" type="text" maxlength="35" placeholder="npr. 97 12-3456789">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <div class="actions actions-primary" style="justify-content:flex-start">
+      <button id="generate">Generiši QR kod</button>
+      <button id="clear" class="secondary" type="button">Očisti</button>
+    </div>
+    <div id="form-status" class="status"></div>
+  </section>
+
+  <aside class="card qr-area">
+    <h2 style="align-self:flex-start">QR kod</h2>
+    <div id="qr-placeholder">QR kod će se prikazati ovde</div>
+    <canvas id="qr-canvas" style="display:none"></canvas>
+
+    <div class="actions">
+      <button id="share" class="share" type="button" disabled>Podeli QR</button>
+      <button id="download" class="secondary" type="button" disabled>Preuzmi PNG</button>
+    </div>
+
+    <div class="share-row" style="margin-top:8px">
+      <button id="share-viber" class="viber" type="button" disabled>Viber</button>
+      <button id="share-whatsapp" class="whatsapp" type="button" disabled>WhatsApp</button>
+      <button id="share-email" class="email" type="button" disabled>Email</button>
+      <button id="copy-string" class="secondary" type="button" disabled>Kopiraj link</button>
+    </div>
+
+    <div class="actions" style="margin-top:8px">
+      <button id="save-qr" class="secondary" type="button" disabled>★ Sačuvaj kod</button>
+    </div>
+    <div class="save-inline" id="save-inline">
+      <input id="save-label" type="text" maxlength="60" placeholder="Naziv (npr. Plata, Internet)">
+      <button id="save-confirm" type="button">Sačuvaj</button>
+      <button id="save-cancel" class="secondary" type="button">Otkaži</button>
+    </div>
+
+    <div id="action-status" class="status"></div>
+
+    <details>
+      <summary>Prikaži IPS string</summary>
+      <div id="ips-string"></div>
+    </details>
+  </aside>
+
+</main>
+
+<footer>
+  Specifikacija: <a href="https://ips.nbs.rs/en/qr-validacija-generisanje" target="_blank" rel="noopener">NBS IPS QR</a>
+</footer>
+
+<script>
+"use strict";
+
+// ---------- NBS IPS helpers ----------
+
+function expandAccountNumber(input) {
+  const cleaned = String(input || "").trim().replace(/\s+/g, "");
+  if (/^\d{18}$/.test(cleaned)) return cleaned;
+  const parts = cleaned.split("-");
+  if (parts.length !== 3) throw new Error("Račun mora biti u formatu XXX-XXX...XXX-XX.");
+  const [bank, mid, check] = parts;
+  if (!/^\d{3}$/.test(bank)) throw new Error("Šifra banke mora imati tačno 3 cifre.");
+  if (!/^\d{2}$/.test(check)) throw new Error("Kontrolni broj mora imati tačno 2 cifre.");
+  if (!/^\d{1,13}$/.test(mid)) throw new Error("Srednji deo računa mora biti 1–13 cifara.");
+  return bank + mid.padStart(13, "0") + check;
+}
+
+function validateAccountChecksum(eighteenDigits) {
+  try {
+    const acc = BigInt(eighteenDigits);
+    const check = acc % 100n;
+    const body = acc / 100n;
+    return (98n - (body * 100n) % 97n) === check;
+  } catch (e) { return false; }
+}
+
+function formatAmount(input) {
+  if (input === undefined || input === null) return "";
+  let s = String(input).trim().replace(/\s+/g, "").replace(",", ".");
+  if (s === "") return "";
+  const n = parseFloat(s);
+  if (!isFinite(n) || n < 0) throw new Error("Iznos nije valjan broj.");
+  return "RSD" + n.toFixed(2).replace(".", ",");
+}
+
+function buildIpsString(fields) {
+  const ordered = ["K","V","C","R","N","I","P","SF","S","RO"];
+  const out = [];
+  for (const key of ordered) {
+    const val = fields[key];
+    if (val !== undefined && val !== null && val !== "") {
+      out.push(`${key}:${String(val).replace(/\|/g, "-")}`);
+    }
+  }
+  return out.join("|");
+}
+
+// ---------- Bank recognition ----------
+
+// Common Serbian bank name fragments. Matched case-insensitively as substrings of a comma-separated piece.
+const BANK_FRAGMENTS = [
+  "unicredit", "uni credit", "banca intesa", "intesa",
+  "komercijalna", "nlb komercijalna", "nlb",
+  "otp", "aik", "raiffeisen", "raiffaisen",
+  "erste", "procredit", "halkbank", "halk banka",
+  "eurobank", "direktna", "mirabank", "addiko", "adiko",
+  "api banka", "alta", "3 bank", "trib bank", "3bank",
+  "postanska", "poštanska", "expobank", "expo bank",
+  "credit agricole", "agricole", "agroindustrijska", "vojvodjanska",
+  "vojvođanska", "srpska banka", "narodna banka",
+];
+
+// Returns { bank, tail } if a bank name is found inside the piece, else null.
+// Tries longest known fragments first, then falls back to "<word> banka/bank/banca" patterns.
+function extractBankFromPiece(piece) {
+  const lower = piece.toLowerCase();
+  const sorted = BANK_FRAGMENTS.slice().sort((a, b) => b.length - a.length);
+  for (const frag of sorted) {
+    const idx = lower.indexOf(frag);
+    if (idx === -1) continue;
+    // Word boundary check at start (allow start-of-string or non-letter)
+    const before = idx === 0 ? "" : lower[idx - 1];
+    if (before && /[a-zšđžčć]/.test(before)) continue;
+    let endIdx = idx + frag.length;
+    // Skip whitespace
+    while (endIdx < piece.length && /\s/.test(piece[endIdx])) endIdx++;
+    // If next word is banka/bank/banca, include it
+    const tailAfter = piece.slice(endIdx);
+    const trailing = tailAfter.match(/^(banka|bank|banca)\b/i);
+    if (trailing) endIdx += trailing[0].length;
+    return {
+      bank: piece.slice(0, endIdx).trim(),
+      tail: piece.slice(endIdx).trim(),
+    };
+  }
+  // Fallback: "<Word> banka/bank/banca" — capture the word before too
+  const m = piece.match(/(^|\s)([A-ZŠĐŽČĆa-zšđžčć]+)\s+(banka|bank|banca)\b/i);
+  if (m) {
+    const start = m.index + m[1].length;
+    const end = start + m[2].length + 1 + m[3].length;
+    return {
+      bank: piece.slice(0, end).trim(),
+      tail: piece.slice(end).trim(),
+    };
+  }
+  // Fallback: bare "banka/bank/banca" word — split after it
+  const m2 = piece.match(/\b(banka|bank|banca)\b/i);
+  if (m2) {
+    const end = m2.index + m2[0].length;
+    return {
+      bank: piece.slice(0, end).trim(),
+      tail: piece.slice(end).trim(),
+    };
+  }
+  return null;
+}
+
+// ---------- Parser ----------
+
+function parsePastedText(text) {
+  const out = { account: "", bank: "", name: "", street: "", city: "", postalCode: "" };
+  if (!text) return out;
+
+  let working = text;
+
+  // 1. Extract account. Try the canonical XXX-XXX...XXX-XX form first, then
+  //    fall back to a bare 18-digit run (some banks list accounts without
+  //    separators, e.g. "160550010064176439").
+  let accMatch = working.match(/(\d{3})-(\d{1,13})-(\d{2})/);
+  if (!accMatch) {
+    accMatch = working.match(/(?<!\d)(\d{18})(?!\d)/);
+  }
+  if (accMatch) {
+    out.account = accMatch[0];
+    working = (working.slice(0, accMatch.index) + " " + working.slice(accMatch.index + accMatch[0].length));
+  }
+
+  // 2. Extract postal code + city. Look for a 5-digit code that exists in DB,
+  //    and capture the city name that follows (until comma or end).
+  const codes = window.SRB_POSTAL_CODES || {};
+  const zipRegex = /\b(\d{5})\b/g;
+  let zipMatch;
+  let zipFound = null;
+  while ((zipMatch = zipRegex.exec(working)) !== null) {
+    if (codes[zipMatch[1]]) { zipFound = zipMatch; break; }
+  }
+  if (zipFound) {
+    out.postalCode = zipFound[1];
+    const expectedCity = codes[zipFound[1]];
+    // Try to capture text after zip until end-of-piece (comma or end)
+    const after = working.slice(zipFound.index + 5);
+    const stopMatch = after.match(/^([^,\n\r]*)/);
+    let cityTail = (stopMatch ? stopMatch[1] : "").trim();
+    // If cityTail looks empty, just use expected city
+    if (!cityTail) cityTail = expectedCity;
+    out.city = `${out.postalCode} ${cityTail}`.trim();
+    // Remove zip + captured tail from working text
+    const removeFrom = zipFound.index;
+    const removeTo = zipFound.index + 5 + (stopMatch ? stopMatch[1].length : 0);
+    working = working.slice(0, removeFrom) + " " + working.slice(removeTo);
+  }
+
+  // 3. Split remaining by commas/newlines, trim
+  let pieces = working.split(/[,\n\r]+/).map(s => s.trim()).filter(Boolean);
+
+  // 4. Identify and strip bank pieces; remaining = candidates for name/street
+  const remaining = [];
+  for (const piece of pieces) {
+    if (!out.bank) {
+      const extracted = extractBankFromPiece(piece);
+      if (extracted) {
+        out.bank = extracted.bank;
+        if (extracted.tail) remaining.push(extracted.tail);
+        continue;
+      }
+    }
+    remaining.push(piece);
+  }
+
+  // 5. From remaining, identify street (contains a digit near end / looks like an address)
+  //    and name (the other one). If only one piece, treat as name.
+  const streetIdx = remaining.findIndex(p => /\d/.test(p) && /[a-zA-Zšđžčćа-яА-Я]/.test(p));
+  if (streetIdx !== -1) {
+    out.street = remaining[streetIdx];
+    const nameParts = remaining.filter((_, i) => i !== streetIdx);
+    out.name = nameParts.join(" ").trim();
+  } else {
+    out.name = remaining.join(" ").trim();
+  }
+
+  return out;
+}
+
+function formatNameForIps(name, street, city) {
+  // NBS allows up to 3 lines / 70 chars total
+  const lines = [name, street, city].map(s => (s || "").trim()).filter(Boolean);
+  const limited = lines.slice(0, 3);
+  let combined = limited.join("\r\n");
+  if (combined.length > 70) {
+    // Truncate proportionally: prefer to truncate last line
+    while (combined.length > 70 && limited.length > 0) {
+      const last = limited[limited.length - 1];
+      if (last.length > 1) {
+        limited[limited.length - 1] = last.slice(0, last.length - 1);
+      } else {
+        limited.pop();
+      }
+      combined = limited.join("\r\n");
+    }
+  }
+  return combined;
+}
+
+// ---------- QR rendering ----------
+
+function utf8Bytes(str) {
+  return unescape(encodeURIComponent(str));
+}
+
+function renderQrToCanvas(canvasEl, text, targetSize, info) {
+  if (typeof qrcode !== "function") {
+    throw new Error("QR biblioteka nije učitana (proveri internet konekciju).");
+  }
+  const qr = qrcode(0, "M");
+  qr.addData(utf8Bytes(text), "Byte");
+  qr.make();
+  const count = qr.getModuleCount();
+  const marginModules = 4;
+  const totalModules = count + marginModules * 2;
+  const cell = Math.max(2, Math.floor(targetSize / totalModules));
+  const qrSize = cell * totalModules;
+
+  // Optional caption block below the QR. Stays in the same PNG so anything
+  // pasted/shared shows recipient + amount + purpose at a glance.
+  const captionLines = info ? buildCaptionLines(info) : [];
+  const sidePad = Math.max(16, Math.round(qrSize * 0.05));
+  const captionTopPad = captionLines.length ? Math.round(qrSize * 0.04) : 0;
+  const captionBottomPad = captionLines.length ? Math.round(qrSize * 0.06) : 0;
+  const lineGap = 6;
+  let captionH = 0;
+  if (captionLines.length) {
+    captionH = captionTopPad + captionBottomPad;
+    for (const l of captionLines) captionH += l.size + lineGap;
+    captionH -= lineGap;
+  }
+  const totalH = qrSize + captionH;
+
+  canvasEl.width = qrSize;
+  canvasEl.height = totalH;
+  canvasEl.style.width = "";
+  canvasEl.style.height = "";
+  const ctx = canvasEl.getContext("2d");
+  // White background for whole image
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, qrSize, totalH);
+  // QR modules
+  ctx.fillStyle = "#000000";
+  const offset = cell * marginModules;
+  for (let r = 0; r < count; r++) {
+    for (let c = 0; c < count; c++) {
+      if (qr.isDark(r, c)) {
+        ctx.fillRect(offset + c * cell, offset + r * cell, cell, cell);
+      }
+    }
+  }
+  if (!captionLines.length) return;
+
+  // Thin separator line
+  ctx.strokeStyle = "#e0e0e0";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(sidePad, qrSize + 0.5);
+  ctx.lineTo(qrSize - sidePad, qrSize + 0.5);
+  ctx.stroke();
+
+  // Caption lines
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  let y = qrSize + captionTopPad;
+  const maxWidth = qrSize - sidePad * 2;
+  for (const l of captionLines) {
+    y += l.size;
+    ctx.font = `${l.weight} ${l.size}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
+    ctx.fillStyle = l.color;
+    let text = l.text;
+    if (ctx.measureText(text).width > maxWidth) {
+      while (text.length > 4 && ctx.measureText(text + "…").width > maxWidth) {
+        text = text.slice(0, -1);
+      }
+      text += "…";
+    }
+    ctx.fillText(text, qrSize / 2, y);
+    y += lineGap;
+  }
+}
+
+function buildCaptionLines(info) {
+  const lines = [];
+  if (info.name) {
+    lines.push({ text: String(info.name).replace(/\r?\n/g, " · "), size: 18, weight: "600", color: "#1a1a1a" });
+  }
+  if (info.account) {
+    lines.push({ text: String(info.account), size: 13, weight: "400", color: "#5b6779" });
+  }
+  if (info.amount) {
+    lines.push({ text: formatDisplayAmount(info.amount), size: 24, weight: "700", color: "#1a1a1a" });
+  }
+  if (info.purpose) {
+    lines.push({ text: String(info.purpose), size: 13, weight: "400", color: "#5b6779" });
+  }
+  return lines;
+}
+
+function formatDisplayAmount(input) {
+  let s = String(input).trim().replace(/\s+/g, "").replace(",", ".");
+  const n = parseFloat(s);
+  if (!isFinite(n)) return String(input);
+  try {
+    return n.toLocaleString("sr-RS", {
+      style: "currency",
+      currency: "RSD",
+      minimumFractionDigits: n % 1 === 0 ? 0 : 2,
+      maximumFractionDigits: 2,
+    });
+  } catch (e) {
+    return n.toFixed(2).replace(".", ",") + " RSD";
+  }
+}
+
+function canvasToPngBlob(canvasEl) {
+  return new Promise((resolve, reject) => {
+    canvasEl.toBlob(blob => {
+      if (blob) resolve(blob); else reject(new Error("Greška pri konverziji u PNG."));
+    }, "image/png");
+  });
+}
+
+// Copy a PNG blob to the system clipboard. Returns true on success.
+// Some browsers (notably iOS Safari) require the ClipboardItem to resolve
+// synchronously in the user-gesture task — passing the blob directly works.
+async function copyPngToClipboard(blob) {
+  if (!blob || !navigator.clipboard || typeof window.ClipboardItem !== "function") return false;
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    return true;
+  } catch (e) {
+    console.warn("Clipboard image write failed:", e);
+    return false;
+  }
+}
+
+// ---------- DOM ----------
+
+const $ = (id) => document.getElementById(id);
+const raw = $("raw");
+const accountInput = $("account");
+const amountInput = $("amount");
+const nameInput = $("name");
+const streetInput = $("street");
+const cityInput = $("city");
+const paymentCode = $("payment-code");
+const purposeInput = $("purpose");
+const payerInput = $("payer");
+const referenceInput = $("reference");
+const formStatus = $("form-status");
+const parseHint = $("parse-hint");
+const placeholder = $("qr-placeholder");
+const canvas = $("qr-canvas");
+const ipsStringEl = $("ips-string");
+const actionStatus = $("action-status");
+
+const btnGenerate = $("generate");
+const btnClear = $("clear");
+const btnShare = $("share");
+const btnDownload = $("download");
+const btnViber = $("share-viber");
+const btnWhatsApp = $("share-whatsapp");
+const btnEmail = $("share-email");
+const btnCopy = $("copy-string");
+const btnSaveQr = $("save-qr");
+const moreFields = $("more-fields");
+const saveInline = $("save-inline");
+const saveLabel = $("save-label");
+const btnSaveConfirm = $("save-confirm");
+const btnSaveCancel = $("save-cancel");
+const savedList = $("saved-list");
+const savedEmpty = $("saved-empty");
+const savedToggle = $("saved-toggle");
+const savedCount = $("saved-count");
+
+let lastIpsString = "";
+let lastPngBlob = null;
+let lastPngDataUrl = "";
+
+function applyParsed(parsed, force = false) {
+  if (parsed.account && (force || !accountInput.value.trim())) accountInput.value = parsed.account;
+  if (parsed.name && (force || !nameInput.value.trim())) nameInput.value = parsed.name;
+  if (parsed.street && (force || !streetInput.value.trim())) streetInput.value = parsed.street;
+  if (parsed.city && (force || !cityInput.value.trim())) cityInput.value = parsed.city;
+
+  // Display recognition badge
+  const badges = [];
+  if (parsed.account) badges.push("račun");
+  if (parsed.bank) badges.push("banka: " + parsed.bank);
+  if (parsed.postalCode) badges.push(parsed.postalCode);
+  if (parsed.city && parsed.postalCode) {
+    const cityName = parsed.city.replace(parsed.postalCode, "").trim();
+    badges.push("grad: " + cityName);
+  }
+  if (badges.length) {
+    parseHint.innerHTML = '<span class="recognized">✓ Prepoznato: ' + badges.join(", ") + '</span>';
+  } else {
+    parseHint.innerHTML = "";
+  }
+}
+
+raw.addEventListener("input", () => applyParsed(parsePastedText(raw.value)));
+raw.addEventListener("paste", () => {
+  setTimeout(() => applyParsed(parsePastedText(raw.value), true), 0);
+});
+
+btnClear.addEventListener("click", () => {
+  raw.value = "";
+  accountInput.value = ""; amountInput.value = "";
+  nameInput.value = ""; streetInput.value = ""; cityInput.value = "";
+  purposeInput.value = ""; payerInput.value = ""; referenceInput.value = "";
+  paymentCode.value = "189";
+  formStatus.textContent = "";
+  parseHint.innerHTML = "";
+  resetQr();
+});
+
+function resetQr() {
+  canvas.style.display = "none";
+  placeholder.style.display = "flex";
+  [btnShare, btnDownload, btnViber, btnWhatsApp, btnEmail, btnCopy, btnSaveQr].forEach(b => b.disabled = true);
+  ipsStringEl.textContent = "";
+  lastIpsString = "";
+  lastPngBlob = null;
+  lastPngDataUrl = "";
+  hideSaveInline();
+}
+
+function hideSaveInline() {
+  saveInline.classList.remove("open");
+  saveLabel.value = "";
+}
+
+function setStatus(el, msg, kind) {
+  el.textContent = msg || "";
+  el.className = "status" + (kind ? " " + kind : "");
+}
+
+function gatherFormData() {
+  return {
+    account: accountInput.value.trim(),
+    amount: amountInput.value.trim(),
+    name: nameInput.value.trim(),
+    street: streetInput.value.trim(),
+    city: cityInput.value.trim(),
+    paymentCode: paymentCode.value,
+    purpose: purposeInput.value.trim(),
+    payer: payerInput.value.trim(),
+    reference: referenceInput.value.trim(),
+  };
+}
+
+function fillFormFromData(d) {
+  accountInput.value = d.account || "";
+  amountInput.value = d.amount || "";
+  nameInput.value = d.name || "";
+  streetInput.value = d.street || "";
+  cityInput.value = d.city || "";
+  paymentCode.value = d.paymentCode || "189";
+  purposeInput.value = d.purpose || "";
+  payerInput.value = d.payer || "";
+  referenceInput.value = d.reference || "";
+  raw.value = "";
+  parseHint.innerHTML = "";
+}
+
+// Validate and convert form data into NBS IPS fields. Throws on error.
+function buildFieldsFromData(d) {
+  if (!d.account) throw new Error("Račun primaoca je obavezan.");
+  if (!d.name) throw new Error("Ime/naziv primaoca je obavezan.");
+  if (!d.paymentCode) throw new Error("Šifra plaćanja je obavezna.");
+  if (!/^[12]\d{2}$/.test(d.paymentCode)) throw new Error("Šifra plaćanja mora biti 3 cifre koje počinju sa 1 ili 2.");
+
+  const accountNorm = expandAccountNumber(d.account);
+  if (!validateAccountChecksum(accountNorm)) {
+    console.warn("Kontrolni broj računa ne prolazi MOD 97-10.");
+  }
+  const nameFormatted = formatNameForIps(d.name, d.street, d.city);
+  if (!nameFormatted) throw new Error("Ime/naziv primaoca je obavezan.");
+
+  const amountFormatted = formatAmount(d.amount);
+
+  const fields = {
+    K: "PR", V: "01", C: "1",
+    R: accountNorm,
+    N: nameFormatted,
+    SF: d.paymentCode,
+  };
+  if (amountFormatted) fields.I = amountFormatted;
+  if (d.payer) fields.P = d.payer.slice(0, 70);
+  if (d.purpose) fields.S = d.purpose.slice(0, 35);
+  if (d.reference) {
+    let ro = d.reference.replace(/\s+/g, "");
+    const model = ro.slice(0, 2);
+    if (!["97","22","11","00"].includes(model)) ro = "00" + ro;
+    fields.RO = ro.slice(0, 35);
+  }
+  return fields;
+}
+
+async function generateQrFromData(data) {
+  const fields = buildFieldsFromData(data);
+  const ips = buildIpsString(fields);
+  lastIpsString = ips;
+  renderQrToCanvas(canvas, ips, 320, {
+    name: data.name,
+    account: data.account,
+    amount: data.amount,
+    purpose: data.purpose,
+  });
+  canvas.style.display = "block";
+  placeholder.style.display = "none";
+  lastPngBlob = await canvasToPngBlob(canvas);
+  lastPngDataUrl = canvas.toDataURL("image/png");
+  [btnDownload, btnViber, btnWhatsApp, btnEmail, btnCopy, btnSaveQr].forEach(b => b.disabled = false);
+  btnShare.disabled = !navigator.share;
+  ipsStringEl.textContent = ips;
+  return ips;
+}
+
+btnGenerate.addEventListener("click", async () => {
+  setStatus(formStatus, "");
+  hideSaveInline();
+  try {
+    const data = gatherFormData();
+    const ips = await generateQrFromData(data);
+    setStatus(formStatus, "QR kod uspešno generisan (" + ips.length + " znakova).", "ok");
+    setStatus(actionStatus, "");
+  } catch (err) {
+    resetQr();
+    setStatus(formStatus, err.message || String(err), "err");
+    // Open the collapsible if a required field inside it is missing
+    if (/račun|naziv|šifra/i.test(err.message || "")) {
+      moreFields.open = true;
+    }
+  }
+});
+
+btnDownload.addEventListener("click", () => {
+  if (!lastPngDataUrl) return;
+  const link = document.createElement("a");
+  link.download = "ips-qr.png";
+  link.href = lastPngDataUrl;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+
+btnCopy.addEventListener("click", async () => {
+  if (!lastIpsString) return;
+  try {
+    const data = gatherFormData();
+    await navigator.clipboard.writeText(buildAutoLink(data));
+    setStatus(actionStatus, "Link kopiran.", "ok");
+    setTimeout(() => setStatus(actionStatus, ""), 2000);
+  } catch (e) {
+    setStatus(actionStatus, "Kopiranje nije uspelo.", "err");
+  }
+});
+
+function buildShareText() {
+  const lines = ["NBS IPS plaćanje"];
+  if (nameInput.value.trim()) lines.push("Primalac: " + nameInput.value.trim());
+  if (accountInput.value.trim()) lines.push("Račun: " + accountInput.value.trim());
+  if (amountInput.value.trim()) lines.push("Iznos: " + amountInput.value.trim() + " RSD");
+  if (purposeInput.value.trim()) lines.push("Svrha: " + purposeInput.value.trim());
+  return lines.join("\n");
+}
+
+// Build a deep-link that re-creates the QR when opened. Uses URL hash so the
+// payment data never reaches the server.
+function buildAutoLink(data) {
+  const params = new URLSearchParams();
+  if (data.account) params.set("a", data.account);
+  if (data.name) params.set("n", data.name);
+  if (data.street) params.set("s", data.street);
+  if (data.city) params.set("c", data.city);
+  if (data.amount) params.set("i", data.amount);
+  if (data.paymentCode && data.paymentCode !== "189") params.set("sf", data.paymentCode);
+  if (data.purpose) params.set("pu", data.purpose);
+  if (data.payer) params.set("pl", data.payer);
+  if (data.reference) params.set("rb", data.reference);
+  const base = location.href.split("#")[0].split("?")[0];
+  return base + "#" + params.toString();
+}
+
+function shareTextWithLink() {
+  const data = gatherFormData();
+  return buildShareText() + "\n\nOtvori QR: " + buildAutoLink(data);
+}
+
+btnShare.addEventListener("click", async () => {
+  if (!navigator.share) {
+    setStatus(actionStatus, "Deljenje nije podržano u ovom browseru.", "err");
+    return;
+  }
+  try {
+    const shareData = { title: "NBS IPS QR", text: shareTextWithLink() };
+    // Try to share as file (Web Share API Level 2)
+    if (lastPngBlob && navigator.canShare) {
+      const file = new File([lastPngBlob], "ips-qr.png", { type: "image/png" });
+      if (navigator.canShare({ files: [file] })) {
+        shareData.files = [file];
+      }
+    }
+    await navigator.share(shareData);
+    setStatus(actionStatus, "Podeljeno.", "ok");
+    setTimeout(() => setStatus(actionStatus, ""), 2000);
+  } catch (err) {
+    if (err.name !== "AbortError") {
+      setStatus(actionStatus, "Greška: " + err.message, "err");
+    }
+  }
+});
+
+// Share to a chat app. Preferred path is Web Share API with PNG file —
+// system share sheet appears with the chat app pre-listed; one tap delivers
+// PNG + text (with autogenerate link) directly to the chat. Falls back to
+// clipboard-image + URL-scheme on browsers that can't share files.
+async function shareToChat(deepLinkUrl, appName) {
+  const text = shareTextWithLink();
+
+  if (lastPngBlob && navigator.share && navigator.canShare) {
+    const file = new File([lastPngBlob], "ips-qr.png", { type: "image/png" });
+    if (navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ title: "NBS IPS QR", text, files: [file] });
+        setStatus(actionStatus, "Podeljeno.", "ok");
+        setTimeout(() => setStatus(actionStatus, ""), 2000);
+        return;
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        console.warn("Web Share failed, falling back:", err);
+      }
+    }
+  }
+
+  // Fallback: copy image to clipboard, open chat compose with text
+  const copied = await copyPngToClipboard(lastPngBlob);
+  if (copied) {
+    setStatus(actionStatus, `Slika kopirana — kada se ${appName} otvori, nalepi (long-press → Paste).`, "ok");
+  } else {
+    setStatus(actionStatus, `${appName} ne prihvata slike preko link-a. Probaj "Podeli QR".`, "err");
+  }
+  const url = deepLinkUrl.replace("%TEXT%", encodeURIComponent(text));
+  if (deepLinkUrl.startsWith("http")) {
+    window.open(url, "_blank");
+  } else {
+    window.location.href = url;
+  }
+}
+
+btnViber.addEventListener("click", () => shareToChat("viber://forward?text=%TEXT%", "Viber"));
+btnWhatsApp.addEventListener("click", () => shareToChat("https://wa.me/?text=%TEXT%", "WhatsApp"));
+btnEmail.addEventListener("click", () => {
+  const subject = encodeURIComponent("NBS IPS plaćanje");
+  shareToChat(`mailto:?subject=${subject}&body=%TEXT%`, "Email");
+});
+
+// ---------- Saved QR codes (localStorage) ----------
+
+const SAVED_KEY = "qrpay-saved-codes";
+
+function loadSavedCodes() {
+  try {
+    const raw = localStorage.getItem(SAVED_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+
+function persistSavedCodes(arr) {
+  try {
+    localStorage.setItem(SAVED_KEY, JSON.stringify(arr));
+  } catch (e) {
+    setStatus(actionStatus, "Čuvanje nije uspelo (storage pun?).", "err");
+  }
+}
+
+function newId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "id-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function renderSavedList() {
+  const items = loadSavedCodes();
+  savedList.innerHTML = "";
+  savedCount.textContent = items.length ? items.length : "";
+  if (items.length === 0) {
+    savedEmpty.style.display = "block";
+    return;
+  }
+  savedEmpty.style.display = "none";
+  // Newest first
+  const sorted = items.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  for (const it of sorted) {
+    const wrap = document.createElement("div");
+    wrap.className = "saved-item";
+    const amt = it.amount ? `${it.amount} RSD` : "—";
+    const account = it.account || "—";
+    const recipient = it.name || "—";
+    wrap.innerHTML = `
+      <div class="title">${escapeHtml(it.label || "(bez naziva)")}</div>
+      <div class="meta">
+        <div>${escapeHtml(recipient)} • <strong>${escapeHtml(amt)}</strong></div>
+        <div>${escapeHtml(account)}</div>
+        ${it.purpose ? `<div>Svrha: ${escapeHtml(it.purpose)}</div>` : ""}
+      </div>
+      <div class="item-actions">
+        <button class="secondary" data-act="open">Otvori</button>
+        <button data-act="share">Podeli</button>
+        <button class="danger" data-act="delete" aria-label="Obriši">×</button>
+      </div>
+    `;
+    wrap.querySelector('[data-act="open"]').addEventListener("click", () => openSaved(it.id));
+    wrap.querySelector('[data-act="share"]').addEventListener("click", () => shareSaved(it.id));
+    wrap.querySelector('[data-act="delete"]').addEventListener("click", () => deleteSaved(it.id));
+    savedList.appendChild(wrap);
+  }
+}
+
+function openSaved(id) {
+  const items = loadSavedCodes();
+  const item = items.find(x => x.id === id);
+  if (!item) return;
+  fillFormFromData(item);
+  // Auto-generate and scroll up so user sees the QR
+  btnGenerate.click();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function shareSaved(id) {
+  const items = loadSavedCodes();
+  const item = items.find(x => x.id === id);
+  if (!item) return;
+  try {
+    const fields = buildFieldsFromData(item);
+    const ips = buildIpsString(fields);
+    // Render to an offscreen canvas, with caption baked into the PNG
+    const off = document.createElement("canvas");
+    renderQrToCanvas(off, ips, 320, {
+      name: item.name,
+      account: item.account,
+      amount: item.amount,
+      purpose: item.purpose,
+    });
+    const blob = await canvasToPngBlob(off);
+    const text = [
+      "NBS IPS plaćanje",
+      item.name ? "Primalac: " + item.name : null,
+      item.account ? "Račun: " + item.account : null,
+      item.amount ? "Iznos: " + item.amount + " RSD" : null,
+      item.purpose ? "Svrha: " + item.purpose : null,
+      "",
+      "Otvori QR: " + buildAutoLink(item),
+    ].filter(x => x !== null).join("\n");
+
+    if (navigator.share) {
+      const shareData = { title: item.label || "NBS IPS QR", text };
+      if (navigator.canShare) {
+        const file = new File([blob], (item.label || "ips-qr") + ".png", { type: "image/png" });
+        if (navigator.canShare({ files: [file] })) shareData.files = [file];
+      }
+      await navigator.share(shareData);
+    } else {
+      // Fallback: download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = (item.label || "ips-qr") + ".png";
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+  } catch (err) {
+    if (err.name !== "AbortError") {
+      alert("Greška pri deljenju: " + err.message);
+    }
+  }
+}
+
+function deleteSaved(id) {
+  const items = loadSavedCodes();
+  const item = items.find(x => x.id === id);
+  if (!item) return;
+  if (!confirm(`Obrisati "${item.label || "(bez naziva)"}"?`)) return;
+  const remaining = items.filter(x => x.id !== id);
+  persistSavedCodes(remaining);
+  renderSavedList();
+}
+
+btnSaveQr.addEventListener("click", () => {
+  if (!lastIpsString) return;
+  saveInline.classList.add("open");
+  // Default label = recipient name or amount
+  const data = gatherFormData();
+  saveLabel.value = data.name || (data.amount ? data.amount + " RSD" : "");
+  saveLabel.focus();
+  saveLabel.select();
+});
+
+btnSaveCancel.addEventListener("click", hideSaveInline);
+
+btnSaveConfirm.addEventListener("click", () => {
+  const label = saveLabel.value.trim();
+  if (!label) {
+    saveLabel.focus();
+    return;
+  }
+  const data = gatherFormData();
+  const items = loadSavedCodes();
+  items.push({
+    id: newId(),
+    label,
+    createdAt: Date.now(),
+    ...data,
+  });
+  persistSavedCodes(items);
+  hideSaveInline();
+  renderSavedList();
+  savedToggle.open = true;
+  setStatus(actionStatus, `Sačuvano: "${label}"`, "ok");
+  setTimeout(() => setStatus(actionStatus, ""), 2500);
+});
+
+saveLabel.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); btnSaveConfirm.click(); }
+  if (e.key === "Escape") { e.preventDefault(); hideSaveInline(); }
+});
+
+renderSavedList();
+
+// ---------- Auto-load from URL hash ----------
+// When the page is opened with a hash like #a=...&n=...&i=...,
+// populate the form and immediately generate the QR. Used by share links.
+
+function applyHashIfAny() {
+  if (!location.hash || location.hash.length < 2) return false;
+  const params = new URLSearchParams(location.hash.slice(1));
+  const account = params.get("a");
+  const name = params.get("n");
+  if (!account && !name) return false;
+  const data = {
+    account: account || "",
+    name: name || "",
+    street: params.get("s") || "",
+    city: params.get("c") || "",
+    amount: params.get("i") || "",
+    paymentCode: params.get("sf") || "189",
+    purpose: params.get("pu") || "",
+    payer: params.get("pl") || "",
+    reference: params.get("rb") || "",
+  };
+  fillFormFromData(data);
+  return true;
+}
+
+if (applyHashIfAny()) {
+  // Defer Generate click until DOM/listeners settle
+  setTimeout(() => btnGenerate.click(), 0);
+}
+
+// Initialize button visibility
+if (!navigator.share) {
+  btnShare.style.display = "none";
+}
+
+// ---------- Theme ----------
+
+const THEME_KEY = "qrpay-theme";
+
+function getStoredTheme() {
+  try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; }
+}
+function storeTheme(t) {
+  try { localStorage.setItem(THEME_KEY, t); } catch (e) { /* ignore */ }
+}
+
+function applyTheme(theme) {
+  const icon = document.getElementById("theme-icon");
+  const label = document.getElementById("theme-label");
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (theme === "dark") {
+    document.body.classList.add("dark-theme");
+    if (icon) icon.textContent = "☀️";
+    if (label) label.textContent = "Dnevna";
+    if (meta) meta.setAttribute("content", "#15181f");
+  } else {
+    document.body.classList.remove("dark-theme");
+    if (icon) icon.textContent = "🌙";
+    if (label) label.textContent = "Noćna";
+    if (meta) meta.setAttribute("content", "#0a4ea2");
+  }
+}
+
+function toggleTheme() {
+  const next = document.body.classList.contains("dark-theme") ? "light" : "dark";
+  storeTheme(next);
+  applyTheme(next);
+}
+window.toggleTheme = toggleTheme;
+
+(function initTheme() {
+  const stored = getStoredTheme();
+  if (stored === "dark" || stored === "light") {
+    applyTheme(stored);
+  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    applyTheme("dark");
+  } else {
+    applyTheme("light");
+  }
+})();
+
+// ---------- PWA install ----------
+
+let deferredPrompt = null;
+const installBtn = document.getElementById("install-btn");
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (installBtn && !isStandalone()) installBtn.classList.remove("hidden");
+});
+
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches ||
+         window.navigator.standalone === true;
+}
+
+async function installApp() {
+  if (!deferredPrompt) {
+    if (isStandalone()) {
+      alert("✅ Aplikacija je već instalirana.");
+    } else {
+      // iOS Safari has no beforeinstallprompt — show manual instructions
+      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIos) {
+        alert("Za instalaciju na iPhone/iPad:\n\n1. Tap dugme Podeli (□↑)\n2. Izaberi 'Add to Home Screen'\n3. Tap 'Add'");
+      } else {
+        alert("Instalacija trenutno nije dostupna.\n\nPokušaj:\n• Otvori u Chrome / Edge\n• Iz menija izaberi 'Install app' ili 'Add to Home screen'");
+      }
+    }
+    return;
+  }
+  deferredPrompt.prompt();
+  try {
+    const choice = await deferredPrompt.userChoice;
+    if (choice.outcome === "accepted") {
+      if (installBtn) installBtn.classList.add("hidden");
+    }
+  } catch (e) { /* ignore */ }
+  deferredPrompt = null;
+}
+window.installApp = installApp;
+
+window.addEventListener("appinstalled", () => {
+  deferredPrompt = null;
+  if (installBtn) installBtn.classList.add("hidden");
+});
+
+// Hide install button if already running as PWA
+if (isStandalone() && installBtn) installBtn.classList.add("hidden");
+
+// ---------- Service worker ----------
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("service-worker.js", { updateViaCache: "none" })
+      .catch(() => { /* best-effort */ });
+  });
+}
+</script>
+</body>
+</html>
