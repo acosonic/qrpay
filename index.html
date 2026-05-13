@@ -306,18 +306,22 @@
   }
   details.fields > summary::-webkit-details-marker { display: none; }
   details.fields > summary::after {
-    content: "▾";
-    font-size: 20px;
+    content: "▼";
+    font-size: 22px;
     line-height: 1;
-    color: var(--muted);
+    color: var(--accent);
     transition: transform 0.18s ease;
     transform-origin: center;
-    margin-left: 8px;
+    margin-left: 10px;
+    flex-shrink: 0;
   }
-  details.fields > summary:hover::after { color: var(--text); }
+  details.fields > summary:hover::after { color: var(--accent-hover); }
   details.fields[open] > summary::after {
     transform: rotate(180deg);
-    color: var(--text);
+    color: var(--accent);
+  }
+  @media (max-width: 840px) {
+    details.fields > summary::after { font-size: 28px; }
   }
   details.fields > .details-body {
     padding: 0 14px 14px;
